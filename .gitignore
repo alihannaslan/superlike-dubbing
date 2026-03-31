@@ -44,3 +44,9 @@ next-env.d.ts
 uploads/
 dubbed/
 .env.local
+
+/src/generated/prisma
+
+# prisma
+prisma/dev.db
+prisma/dev.db-journal

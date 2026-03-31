@@ -1,0 +1,37 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  createdAt DateTime @default(now())
+
+  dubbingJobs DubbingJob[]
+}
+
+model DubbingJob {
+  id               String    @id @default(cuid())
+  userId           String
+  originalFileName String
+  originalFilePath String
+  originalFileSize Int
+  targetLang       String
+  targetLangName   String
+  status           String    @default("PENDING")
+  dubbingId        String?
+  expectedDuration Int?
+  dubbedFilePath   String?
+  errorMessage     String?
+  createdAt        DateTime  @default(now())
+  completedAt      DateTime?
+
+  user User @relation(fields: [userId], references: [id])
+}
