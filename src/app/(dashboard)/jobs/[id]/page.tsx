@@ -18,10 +18,25 @@ interface JobDetail {
   completedAt: string | null;
 }
 
+interface Segment {
+  segmentId: string;
+  startTime: number;
+  endTime: number;
+  sourceText: string;
+  targetText: string;
+  audioStale: boolean;
+}
+
 export default function JobDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [job, setJob] = useState<JobDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [segments, setSegments] = useState<Segment[]>([]);
+  const [editedSegments, setEditedSegments] = useState<Record<string, string>>({});
+  const [loadingSegments, setLoadingSegments] = useState(false);
+  const [showSegments, setShowSegments] = useState(false);
+  const [saving, setSaving] = useState<string | null>(null);
+  const [redubbing, setRedubbing] = useState(false);
 
   const fetchJob = useCallback(async () => {
     const res = await fetch(`/api/dubbing/${id}`);
@@ -32,6 +47,17 @@ export default function JobDetailPage() {
     }
   }, [id]);
 
+  const fetchSegments = useCallback(async () => {
+    setLoadingSegments(true);
+    const res = await fetch(`/api/dubbing/${id}/segments`);
+    if (res.ok) {
+      const data = await res.json();
+      setSegments(data.segments);
+    }
+    setLoadingSegments(false);
+  }, [id]);
+
+  // Poll status while processing
   useEffect(() => {
     fetchJob();
 
@@ -43,12 +69,22 @@ export default function JobDetailPage() {
         const data = await res.json();
         if (data.status !== job?.status) {
           fetchJob();
+          // Refresh segments when dubbing completes
+          if (data.status === "COMPLETED" && showSegments) {
+            fetchSegments();
+          }
         }
       }
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [id, job?.status, fetchJob]);
+  }, [id, job?.status, fetchJob, fetchSegments, showSegments]);
+
+  function formatTime(seconds: number): string {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  }
 
   function formatSize(bytes: number): string {
     if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
@@ -65,6 +101,67 @@ export default function JobDetailPage() {
     });
   }
 
+  async function handleToggleSegments() {
+    if (!showSegments && segments.length === 0) {
+      await fetchSegments();
+    }
+    setShowSegments(!showSegments);
+  }
+
+  function handleTextChange(segmentId: string, text: string) {
+    setEditedSegments((prev) => ({ ...prev, [segmentId]: text }));
+  }
+
+  async function handleSaveSegment(segmentId: string) {
+    const text = editedSegments[segmentId];
+    if (text === undefined) return;
+
+    setSaving(segmentId);
+    const res = await fetch(`/api/dubbing/${id}/segments`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ segmentId, text }),
+    });
+
+    if (res.ok) {
+      // Update local state
+      setSegments((prev) =>
+        prev.map((s) =>
+          s.segmentId === segmentId ? { ...s, targetText: text, audioStale: true } : s
+        )
+      );
+      setEditedSegments((prev) => {
+        const next = { ...prev };
+        delete next[segmentId];
+        return next;
+      });
+    }
+    setSaving(null);
+  }
+
+  async function handleRedub() {
+    const staleIds = segments
+      .filter((s) => s.audioStale)
+      .map((s) => s.segmentId);
+
+    if (staleIds.length === 0) return;
+
+    setRedubbing(true);
+    const res = await fetch(`/api/dubbing/${id}/segments`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ segmentIds: staleIds }),
+    });
+
+    if (res.ok) {
+      fetchJob();
+    }
+    setRedubbing(false);
+  }
+
+  const hasStaleSegments = segments.some((s) => s.audioStale);
+  const hasUnsavedChanges = Object.keys(editedSegments).length > 0;
+
   if (loading) {
     return <div className="text-gray-500">Yükleniyor...</div>;
   }
@@ -74,7 +171,7 @@ export default function JobDetailPage() {
   }
 
   return (
-    <div className="max-w-xl">
+    <div className="max-w-3xl">
       <Link href="/" className="text-gray-400 hover:text-white text-sm mb-4 inline-block">
         &larr; Dashboard
       </Link>
@@ -132,14 +229,111 @@ export default function JobDetailPage() {
         )}
 
         {job.status === "COMPLETED" && (
-          <a
-            href={`/api/dubbing/${job.id}/download`}
-            className="block w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2.5 rounded-lg transition-colors text-center"
-          >
-            Çevrilmiş Videoyu İndir
-          </a>
+          <div className="space-y-3">
+            <a
+              href={`/api/dubbing/${job.id}/download`}
+              className="block w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2.5 rounded-lg transition-colors text-center"
+            >
+              Çevrilmiş Videoyu İndir
+            </a>
+            <button
+              onClick={handleToggleSegments}
+              className="block w-full bg-gray-800 hover:bg-gray-700 text-gray-300 font-medium py-2.5 rounded-lg transition-colors text-center"
+            >
+              {showSegments ? "Segmentleri Gizle" : "Çeviriyi Düzenle"}
+            </button>
+          </div>
         )}
       </div>
+
+      {/* Segment Editor */}
+      {showSegments && (
+        <div className="mt-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold">Çeviri Segmentleri</h2>
+            {(hasStaleSegments || hasUnsavedChanges) && (
+              <button
+                onClick={handleRedub}
+                disabled={redubbing || hasUnsavedChanges}
+                className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm px-4 py-2 rounded-lg transition-colors"
+              >
+                {redubbing
+                  ? "Seslendiriliyor..."
+                  : hasUnsavedChanges
+                  ? "Önce değişiklikleri kaydedin"
+                  : `Yeniden Seslendir (${segments.filter((s) => s.audioStale).length} segment)`}
+              </button>
+            )}
+          </div>
+
+          {loadingSegments ? (
+            <div className="text-gray-500 text-sm">Segmentler yükleniyor...</div>
+          ) : (
+            <div className="space-y-3">
+              {segments.map((segment) => {
+                const isEdited = editedSegments[segment.segmentId] !== undefined;
+                const currentText = isEdited
+                  ? editedSegments[segment.segmentId]
+                  : segment.targetText;
+                const isSaving = saving === segment.segmentId;
+
+                return (
+                  <div
+                    key={segment.segmentId}
+                    className={`bg-gray-900 border rounded-xl p-4 space-y-3 ${
+                      segment.audioStale
+                        ? "border-yellow-700"
+                        : "border-gray-800"
+                    }`}
+                  >
+                    {/* Time + stale indicator */}
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-gray-500 font-mono">
+                        {formatTime(segment.startTime)} - {formatTime(segment.endTime)}
+                      </span>
+                      {segment.audioStale && (
+                        <span className="text-xs text-yellow-400">Yeniden seslendirme gerekli</span>
+                      )}
+                    </div>
+
+                    {/* Source text (read-only) */}
+                    <div>
+                      <p className="text-xs text-gray-500 mb-1">Türkçe (orijinal)</p>
+                      <p className="text-sm text-gray-400">{segment.sourceText}</p>
+                    </div>
+
+                    {/* Target text (editable) */}
+                    <div>
+                      <p className="text-xs text-gray-500 mb-1">
+                        {job.targetLangName} (çeviri)
+                      </p>
+                      <div className="flex gap-2">
+                        <textarea
+                          value={currentText}
+                          onChange={(e) =>
+                            handleTextChange(segment.segmentId, e.target.value)
+                          }
+                          rows={2}
+                          className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                        />
+                        {isEdited && (
+                          <button
+                            onClick={() => handleSaveSegment(segment.segmentId)}
+                            disabled={isSaving}
+                            className="self-end bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs px-3 py-2 rounded-lg transition-colors whitespace-nowrap"
+                          >
+                            {isSaving ? "..." : "Kaydet"}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
