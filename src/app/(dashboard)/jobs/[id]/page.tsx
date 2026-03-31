@@ -179,54 +179,54 @@ export default function JobDetailPage() {
   const hasUnsavedChanges = Object.keys(editedSegments).length > 0;
   const hasStaleSegments = segments.some((s) => s.audioStale);
 
-  if (loading) return <div className="text-gray-500">Yükleniyor...</div>;
-  if (!job) return <div className="text-red-400">Job bulunamadı</div>;
+  if (loading) return <div className="text-gray-400">Yükleniyor...</div>;
+  if (!job) return <div className="text-red-500">Job bulunamadı</div>;
 
   return (
     <div className="max-w-3xl">
-      <Link href="/" className="text-gray-400 hover:text-white text-sm mb-4 inline-block">
+      <Link href="/" className="text-gray-500 hover:text-gray-900 text-sm mb-4 inline-block">
         &larr; Dashboard
       </Link>
 
       {/* Job Info Card */}
-      <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-6">
+      <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-6 space-y-6">
         <div className="flex items-start justify-between">
           <div>
             <h1 className="text-xl font-bold">{job.originalFileName}</h1>
-            <p className="text-gray-500 text-sm mt-1">{formatSize(job.originalFileSize)}</p>
+            <p className="text-gray-400 text-sm mt-1">{formatSize(job.originalFileSize)}</p>
           </div>
           <StatusBadge status={job.status} />
         </div>
 
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
-            <p className="text-gray-500">Kaynak Dil</p>
-            <p className="text-gray-200">Türkçe</p>
+            <p className="text-gray-400">Kaynak Dil</p>
+            <p className="text-gray-800">Türkçe</p>
           </div>
           <div>
-            <p className="text-gray-500">Hedef Dil</p>
-            <p className="text-gray-200">{job.targetLangName}</p>
+            <p className="text-gray-400">Hedef Dil</p>
+            <p className="text-gray-800">{job.targetLangName}</p>
           </div>
           <div>
-            <p className="text-gray-500">Oluşturulma</p>
-            <p className="text-gray-200">{formatDate(job.createdAt)}</p>
+            <p className="text-gray-400">Oluşturulma</p>
+            <p className="text-gray-800">{formatDate(job.createdAt)}</p>
           </div>
           {job.completedAt && (
             <div>
-              <p className="text-gray-500">Tamamlanma</p>
-              <p className="text-gray-200">{formatDate(job.completedAt)}</p>
+              <p className="text-gray-400">Tamamlanma</p>
+              <p className="text-gray-800">{formatDate(job.completedAt)}</p>
             </div>
           )}
         </div>
 
         {(job.status === "PROCESSING" || job.status === "UPLOADING") && (
-          <div className="bg-blue-900/20 border border-blue-800 rounded-lg p-4">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <div className="flex items-center gap-3">
-              <div className="w-5 h-5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+              <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
               <div>
-                <p className="text-blue-300 text-sm font-medium">Çeviri işleniyor...</p>
+                <p className="text-blue-700 text-sm font-medium">Çeviri işleniyor...</p>
                 {job.expectedDuration && (
-                  <p className="text-blue-400/60 text-xs mt-0.5">
+                  <p className="text-blue-500 text-xs mt-0.5">
                     Tahmini süre: ~{Math.ceil(job.expectedDuration / 60)} dakika
                   </p>
                 )}
@@ -236,12 +236,12 @@ export default function JobDetailPage() {
         )}
 
         {job.status === "FINALIZING" && (
-          <div className="bg-indigo-900/20 border border-indigo-800 rounded-lg p-4">
+          <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
             <div className="flex items-center gap-3">
-              <div className="w-5 h-5 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin" />
+              <div className="w-5 h-5 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
               <div>
-                <p className="text-indigo-300 text-sm font-medium">Video oluşturuluyor...</p>
-                <p className="text-indigo-400/60 text-xs mt-0.5">
+                <p className="text-indigo-700 text-sm font-medium">Video oluşturuluyor...</p>
+                <p className="text-indigo-500 text-xs mt-0.5">
                   {hasStaleSegments ? "Düzenlenen segmentler seslendiriliyor ve " : ""}Video hazırlanıyor
                 </p>
               </div>
@@ -250,8 +250,8 @@ export default function JobDetailPage() {
         )}
 
         {job.status === "FAILED" && job.errorMessage && (
-          <div className="bg-red-900/20 border border-red-800 rounded-lg p-4">
-            <p className="text-red-300 text-sm">{job.errorMessage}</p>
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <p className="text-red-600 text-sm">{job.errorMessage}</p>
           </div>
         )}
 
@@ -270,7 +270,7 @@ export default function JobDetailPage() {
         <div className="mt-6 space-y-4">
           <div>
             <h2 className="text-lg font-semibold">Çeviriyi İncele</h2>
-            <p className="text-gray-400 text-sm mt-1">
+            <p className="text-gray-500 text-sm mt-1">
               {editable
                 ? "Çevirileri kontrol edin, düzenleyin. Onayladıktan sonra video oluşturulacak."
                 : "Çevirileri kontrol edin. Onayladıktan sonra video oluşturulacak."}
@@ -278,7 +278,7 @@ export default function JobDetailPage() {
           </div>
 
           {loadingSegments ? (
-            <div className="text-gray-500 text-sm py-8 text-center">Segmentler yükleniyor...</div>
+            <div className="text-gray-400 text-sm py-8 text-center">Segmentler yükleniyor...</div>
           ) : (
             <>
               <div className="space-y-3">
@@ -291,31 +291,31 @@ export default function JobDetailPage() {
                   return (
                     <div
                       key={key}
-                      className={`bg-gray-900 border rounded-xl p-4 space-y-3 ${
-                        segment.audioStale ? "border-yellow-700" : "border-gray-800"
+                      className={`bg-white border rounded-xl p-4 space-y-3 ${
+                        segment.audioStale ? "border-yellow-300" : "border-gray-200"
                       }`}
                     >
                       <div className="flex items-center justify-between">
-                        <span className="text-xs text-gray-500 font-mono">
+                        <span className="text-xs text-gray-400 font-mono">
                           {formatTime(segment.startTime)} - {formatTime(segment.endTime)}
                         </span>
                         {segment.audioStale && (
-                          <span className="text-xs text-yellow-400">Düzenlendi — yeniden seslendirilecek</span>
+                          <span className="text-xs text-yellow-600">Düzenlendi — yeniden seslendirilecek</span>
                         )}
                       </div>
 
                       {/* Source text (only in editable mode) */}
                       {editable && segment.sourceText && (
                         <div>
-                          <p className="text-xs text-gray-500 mb-1">Türkçe (orijinal)</p>
-                          <p className="text-sm text-gray-400">{segment.sourceText}</p>
+                          <p className="text-xs text-gray-400 mb-1">Türkçe (orijinal)</p>
+                          <p className="text-sm text-gray-500">{segment.sourceText}</p>
                         </div>
                       )}
 
                       {/* Target text */}
                       <div>
                         {editable && (
-                          <p className="text-xs text-gray-500 mb-1">{job.targetLangName} (çeviri)</p>
+                          <p className="text-xs text-gray-400 mb-1">{job.targetLangName} (çeviri)</p>
                         )}
                         {editable && segment.segmentId ? (
                           <div className="flex gap-2">
@@ -323,7 +323,7 @@ export default function JobDetailPage() {
                               value={currentText}
                               onChange={(e) => handleTextChange(key, e.target.value)}
                               rows={2}
-                              className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                              className="flex-1 bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                             />
                             {isEdited && (
                               <button
@@ -336,7 +336,7 @@ export default function JobDetailPage() {
                             )}
                           </div>
                         ) : (
-                          <p className="text-sm text-white">{segment.targetText}</p>
+                          <p className="text-sm text-gray-800">{segment.targetText}</p>
                         )}
                       </div>
                     </div>
@@ -345,17 +345,17 @@ export default function JobDetailPage() {
               </div>
 
               {/* Subtitle + Approve */}
-              <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-4">
+              <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-6 space-y-4">
                 <label className="flex items-center gap-3 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={subtitleEnabled}
                     onChange={(e) => setSubtitleEnabled(e.target.checked)}
-                    className="w-5 h-5 rounded bg-gray-800 border-gray-600 text-blue-600 focus:ring-blue-500 focus:ring-offset-0"
+                    className="w-5 h-5 rounded bg-white border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-offset-0"
                   />
                   <div>
-                    <p className="text-sm text-white">Videoya altyazı ekle</p>
-                    <p className="text-xs text-gray-500">{job.targetLangName} altyazı videoya gömülecek</p>
+                    <p className="text-sm text-gray-900">Videoya altyazı ekle</p>
+                    <p className="text-xs text-gray-400">{job.targetLangName} altyazı videoya gömülecek</p>
                   </div>
                 </label>
 

@@ -10,7 +10,7 @@ export function LanguageSelect({ value, onChange }: LanguageSelectProps) {
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+      className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2.5 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
     >
       <option value="">Hedef dil seçin</option>
       {SUPPORTED_LANGUAGES.map((lang) => (

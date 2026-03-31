@@ -53,10 +53,10 @@ export function FileUpload({ onFileSelect, selectedFile }: FileUploadProps) {
         onDrop={handleDrop}
         className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors cursor-pointer ${
           dragActive
-            ? "border-blue-500 bg-blue-500/10"
+            ? "border-blue-500 bg-blue-50"
             : selectedFile
-            ? "border-green-600 bg-green-900/20"
-            : "border-gray-700 hover:border-gray-600"
+            ? "border-green-500 bg-green-50"
+            : "border-gray-300 hover:border-gray-400"
         }`}
         onClick={() => document.getElementById("file-input")?.click()}
       >
@@ -70,18 +70,18 @@ export function FileUpload({ onFileSelect, selectedFile }: FileUploadProps) {
 
         {selectedFile ? (
           <div>
-            <p className="text-green-400 font-medium">{selectedFile.name}</p>
-            <p className="text-gray-500 text-sm mt-1">{formatSize(selectedFile.size)}</p>
+            <p className="text-green-600 font-medium">{selectedFile.name}</p>
+            <p className="text-gray-400 text-sm mt-1">{formatSize(selectedFile.size)}</p>
           </div>
         ) : (
           <div>
-            <p className="text-gray-300">Dosyayı sürükle veya tıkla</p>
-            <p className="text-gray-500 text-sm mt-1">MP4, MOV, MP3, WAV — Max 500MB</p>
+            <p className="text-gray-600">Dosyayı sürükle veya tıkla</p>
+            <p className="text-gray-400 text-sm mt-1">MP4, MOV, MP3, WAV — Max 500MB</p>
           </div>
         )}
       </div>
 
-      {error && <p className="text-red-400 text-sm mt-2">{error}</p>}
+      {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
     </div>
   );
 }

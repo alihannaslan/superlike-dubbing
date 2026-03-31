@@ -51,26 +51,26 @@ export default function NewDubbingPage() {
   return (
     <div className="max-w-xl">
       <h1 className="text-2xl font-bold mb-1">Yeni Çeviri</h1>
-      <p className="text-gray-400 text-sm mb-8">Video yükle ve hedef dil seç</p>
+      <p className="text-gray-500 text-sm mb-8">Video yükle ve hedef dil seç</p>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
-          <label className="block text-sm text-gray-300 mb-2">Video / Ses Dosyası</label>
+          <label className="block text-sm text-gray-700 mb-2">Video / Ses Dosyası</label>
           <FileUpload onFileSelect={setFile} selectedFile={file} />
         </div>
 
         <div>
-          <label className="block text-sm text-gray-300 mb-2">Hedef Dil</label>
+          <label className="block text-sm text-gray-700 mb-2">Hedef Dil</label>
           <LanguageSelect value={targetLang} onChange={setTargetLang} />
         </div>
 
-        <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
           <p className="text-xs text-gray-500">
-            Kaynak dil: <span className="text-gray-300">Türkçe</span> (sabit)
+            Kaynak dil: <span className="text-gray-700">Türkçe</span> (sabit)
           </p>
         </div>
 
-        {error && <p className="text-red-400 text-sm">{error}</p>}
+        {error && <p className="text-red-500 text-sm">{error}</p>}
 
         <button
           type="submit"

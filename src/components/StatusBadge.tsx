@@ -1,11 +1,11 @@
 const STATUS_MAP: Record<string, { label: string; className: string }> = {
-  PENDING: { label: "Bekliyor", className: "bg-gray-700 text-gray-300" },
-  UPLOADING: { label: "Yükleniyor", className: "bg-yellow-900 text-yellow-300" },
-  PROCESSING: { label: "İşleniyor", className: "bg-blue-900 text-blue-300" },
-  REVIEW: { label: "Onay Bekliyor", className: "bg-purple-900 text-purple-300" },
-  FINALIZING: { label: "Oluşturuluyor", className: "bg-indigo-900 text-indigo-300" },
-  COMPLETED: { label: "Tamamlandı", className: "bg-green-900 text-green-300" },
-  FAILED: { label: "Başarısız", className: "bg-red-900 text-red-300" },
+  PENDING: { label: "Bekliyor", className: "bg-gray-100 text-gray-600" },
+  UPLOADING: { label: "Yükleniyor", className: "bg-yellow-100 text-yellow-700" },
+  PROCESSING: { label: "İşleniyor", className: "bg-blue-100 text-blue-700" },
+  REVIEW: { label: "Onay Bekliyor", className: "bg-purple-100 text-purple-700" },
+  FINALIZING: { label: "Oluşturuluyor", className: "bg-indigo-100 text-indigo-700" },
+  COMPLETED: { label: "Tamamlandı", className: "bg-green-100 text-green-700" },
+  FAILED: { label: "Başarısız", className: "bg-red-100 text-red-700" },
 };
 
 export function StatusBadge({ status }: { status: string }) {
