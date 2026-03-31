@@ -29,6 +29,7 @@ model DubbingJob {
   dubbingId        String?
   expectedDuration Int?
   dubbedFilePath   String?
+  subtitleEnabled  Boolean   @default(false)
   errorMessage     String?
   createdAt        DateTime  @default(now())
   completedAt      DateTime?

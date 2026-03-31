@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { writeFile } from "fs/promises";
-import path from "path";
 import { prisma } from "@/lib/db";
 import { getUser } from "@/lib/get-user";
-import { getDubbingStatus, getDubbedAudio } from "@/lib/elevenlabs";
+import { getDubbingStatus } from "@/lib/elevenlabs";
 
 export async function GET(
   _req: NextRequest,
@@ -22,7 +20,8 @@ export async function GET(
     return NextResponse.json({ error: "Job bulunamadı" }, { status: 404 });
   }
 
-  if (!job.dubbingId || job.status === "COMPLETED" || job.status === "FAILED") {
+  // Terminal states — no polling needed
+  if (!job.dubbingId || ["COMPLETED", "FAILED", "REVIEW"].includes(job.status)) {
     return NextResponse.json({ status: job.status });
   }
 
@@ -30,21 +29,13 @@ export async function GET(
     const result = await getDubbingStatus(job.dubbingId);
 
     if (result.status === "dubbed") {
-      const audioBuffer = await getDubbedAudio(job.dubbingId, job.targetLang);
-      const dubbedFileName = `${job.dubbingId}-${job.targetLang}.mp4`;
-      const dubbedPath = path.join(process.cwd(), "dubbed", dubbedFileName);
-      await writeFile(dubbedPath, audioBuffer);
-
+      // Move to REVIEW — user needs to approve translations before finalizing
       await prisma.dubbingJob.update({
         where: { id: job.id },
-        data: {
-          status: "COMPLETED",
-          dubbedFilePath: dubbedPath,
-          completedAt: new Date(),
-        },
+        data: { status: "REVIEW" },
       });
 
-      return NextResponse.json({ status: "COMPLETED" });
+      return NextResponse.json({ status: "REVIEW" });
     }
 
     if (result.error) {
@@ -55,10 +46,10 @@ export async function GET(
       return NextResponse.json({ status: "FAILED", error: result.error });
     }
 
-    return NextResponse.json({ status: "PROCESSING" });
+    return NextResponse.json({ status: job.status });
   } catch (error) {
     return NextResponse.json({
-      status: "PROCESSING",
+      status: job.status,
       error: error instanceof Error ? error.message : "Status check failed",
     });
   }

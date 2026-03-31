@@ -146,6 +146,26 @@ export async function dubSegments(
   return res.json();
 }
 
+// Get SRT subtitle for a language
+export async function getTranscriptSRT(
+  dubbingId: string,
+  languageCode: string
+): Promise<string> {
+  const res = await fetch(
+    `${API_BASE}/dubbing/${dubbingId}/transcript/${languageCode}?format_type=srt`,
+    {
+      headers: { "xi-api-key": getApiKey() },
+    }
+  );
+
+  if (!res.ok) {
+    const error = await res.text();
+    throw new Error(`ElevenLabs transcript failed: ${res.status} ${error}`);
+  }
+
+  return res.text();
+}
+
 export async function getDubbedAudio(
   dubbingId: string,
   languageCode: string

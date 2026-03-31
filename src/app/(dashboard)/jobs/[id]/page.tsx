@@ -34,9 +34,9 @@ export default function JobDetailPage() {
   const [segments, setSegments] = useState<Segment[]>([]);
   const [editedSegments, setEditedSegments] = useState<Record<string, string>>({});
   const [loadingSegments, setLoadingSegments] = useState(false);
-  const [showSegments, setShowSegments] = useState(false);
   const [saving, setSaving] = useState<string | null>(null);
-  const [redubbing, setRedubbing] = useState(false);
+  const [subtitleEnabled, setSubtitleEnabled] = useState(false);
+  const [finalizing, setFinalizing] = useState(false);
 
   const fetchJob = useCallback(async () => {
     const res = await fetch(`/api/dubbing/${id}`);
@@ -44,7 +44,9 @@ export default function JobDetailPage() {
       const data = await res.json();
       setJob(data);
       setLoading(false);
+      return data;
     }
+    return null;
   }, [id]);
 
   const fetchSegments = useCallback(async () => {
@@ -57,28 +59,35 @@ export default function JobDetailPage() {
     setLoadingSegments(false);
   }, [id]);
 
-  // Poll status while processing
+  // Initial load
   useEffect(() => {
     fetchJob();
+  }, [fetchJob]);
+
+  // Auto-fetch segments when status becomes REVIEW
+  useEffect(() => {
+    if (job?.status === "REVIEW" && segments.length === 0) {
+      fetchSegments();
+    }
+  }, [job?.status, segments.length, fetchSegments]);
+
+  // Poll status while processing or finalizing
+  useEffect(() => {
+    if (!job) return;
+    if (["COMPLETED", "FAILED", "REVIEW"].includes(job.status)) return;
 
     const interval = setInterval(async () => {
-      if (!job || job.status === "COMPLETED" || job.status === "FAILED") return;
-
       const res = await fetch(`/api/dubbing/${id}/status`);
       if (res.ok) {
         const data = await res.json();
-        if (data.status !== job?.status) {
+        if (data.status !== job.status) {
           fetchJob();
-          // Refresh segments when dubbing completes
-          if (data.status === "COMPLETED" && showSegments) {
-            fetchSegments();
-          }
         }
       }
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [id, job?.status, fetchJob, fetchSegments, showSegments]);
+  }, [id, job?.status, fetchJob]);
 
   function formatTime(seconds: number): string {
     const mins = Math.floor(seconds / 60);
@@ -101,13 +110,6 @@ export default function JobDetailPage() {
     });
   }
 
-  async function handleToggleSegments() {
-    if (!showSegments && segments.length === 0) {
-      await fetchSegments();
-    }
-    setShowSegments(!showSegments);
-  }
-
   function handleTextChange(segmentId: string, text: string) {
     setEditedSegments((prev) => ({ ...prev, [segmentId]: text }));
   }
@@ -124,7 +126,6 @@ export default function JobDetailPage() {
     });
 
     if (res.ok) {
-      // Update local state
       setSegments((prev) =>
         prev.map((s) =>
           s.segmentId === segmentId ? { ...s, targetText: text, audioStale: true } : s
@@ -139,27 +140,27 @@ export default function JobDetailPage() {
     setSaving(null);
   }
 
-  async function handleRedub() {
-    const staleIds = segments
-      .filter((s) => s.audioStale)
-      .map((s) => s.segmentId);
+  async function handleFinalize() {
+    if (hasUnsavedChanges) return;
 
-    if (staleIds.length === 0) return;
+    setFinalizing(true);
 
-    setRedubbing(true);
-    const res = await fetch(`/api/dubbing/${id}/segments`, {
+    const res = await fetch(`/api/dubbing/${id}/finalize`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ segmentIds: staleIds }),
+      body: JSON.stringify({ subtitleEnabled }),
     });
 
     if (res.ok) {
+      // Start polling for completion
       fetchJob();
+    } else {
+      const data = await res.json();
+      alert(data.error || "Bir hata oluştu");
     }
-    setRedubbing(false);
+    setFinalizing(false);
   }
 
-  const hasStaleSegments = segments.some((s) => s.audioStale);
   const hasUnsavedChanges = Object.keys(editedSegments).length > 0;
 
   if (loading) {
@@ -176,6 +177,7 @@ export default function JobDetailPage() {
         &larr; Dashboard
       </Link>
 
+      {/* Job Info Card */}
       <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-6">
         <div className="flex items-start justify-between">
           <div>
@@ -206,7 +208,8 @@ export default function JobDetailPage() {
           )}
         </div>
 
-        {job.status === "PROCESSING" && (
+        {/* Processing spinner */}
+        {(job.status === "PROCESSING" || job.status === "UPLOADING") && (
           <div className="bg-blue-900/20 border border-blue-800 rounded-lg p-4">
             <div className="flex items-center gap-3">
               <div className="w-5 h-5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
@@ -222,115 +225,144 @@ export default function JobDetailPage() {
           </div>
         )}
 
+        {/* Finalizing spinner */}
+        {job.status === "FINALIZING" && (
+          <div className="bg-indigo-900/20 border border-indigo-800 rounded-lg p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-5 h-5 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin" />
+              <div>
+                <p className="text-indigo-300 text-sm font-medium">Video oluşturuluyor...</p>
+                <p className="text-indigo-400/60 text-xs mt-0.5">
+                  Düzenlenen segmentler seslendiriliyor ve video hazırlanıyor
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Error */}
         {job.status === "FAILED" && job.errorMessage && (
           <div className="bg-red-900/20 border border-red-800 rounded-lg p-4">
             <p className="text-red-300 text-sm">{job.errorMessage}</p>
           </div>
         )}
 
+        {/* Download — only when COMPLETED */}
         {job.status === "COMPLETED" && (
-          <div className="space-y-3">
-            <a
-              href={`/api/dubbing/${job.id}/download`}
-              className="block w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2.5 rounded-lg transition-colors text-center"
-            >
-              Çevrilmiş Videoyu İndir
-            </a>
-            <button
-              onClick={handleToggleSegments}
-              className="block w-full bg-gray-800 hover:bg-gray-700 text-gray-300 font-medium py-2.5 rounded-lg transition-colors text-center"
-            >
-              {showSegments ? "Segmentleri Gizle" : "Çeviriyi Düzenle"}
-            </button>
-          </div>
+          <a
+            href={`/api/dubbing/${job.id}/download`}
+            className="block w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2.5 rounded-lg transition-colors text-center"
+          >
+            Çevrilmiş Videoyu İndir
+          </a>
         )}
       </div>
 
-      {/* Segment Editor */}
-      {showSegments && (
+      {/* Segment Editor — shown in REVIEW state */}
+      {job.status === "REVIEW" && (
         <div className="mt-6 space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold">Çeviri Segmentleri</h2>
-            {(hasStaleSegments || hasUnsavedChanges) && (
-              <button
-                onClick={handleRedub}
-                disabled={redubbing || hasUnsavedChanges}
-                className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm px-4 py-2 rounded-lg transition-colors"
-              >
-                {redubbing
-                  ? "Seslendiriliyor..."
-                  : hasUnsavedChanges
-                  ? "Önce değişiklikleri kaydedin"
-                  : `Yeniden Seslendir (${segments.filter((s) => s.audioStale).length} segment)`}
-              </button>
-            )}
+          <div>
+            <h2 className="text-lg font-semibold">Çeviriyi İncele</h2>
+            <p className="text-gray-400 text-sm mt-1">
+              Çevirileri kontrol edin, gerekirse düzenleyin. Onayladıktan sonra video oluşturulacak.
+            </p>
           </div>
 
           {loadingSegments ? (
-            <div className="text-gray-500 text-sm">Segmentler yükleniyor...</div>
+            <div className="text-gray-500 text-sm py-8 text-center">Segmentler yükleniyor...</div>
           ) : (
-            <div className="space-y-3">
-              {segments.map((segment) => {
-                const isEdited = editedSegments[segment.segmentId] !== undefined;
-                const currentText = isEdited
-                  ? editedSegments[segment.segmentId]
-                  : segment.targetText;
-                const isSaving = saving === segment.segmentId;
+            <>
+              {/* Segments */}
+              <div className="space-y-3">
+                {segments.map((segment) => {
+                  const isEdited = editedSegments[segment.segmentId] !== undefined;
+                  const currentText = isEdited
+                    ? editedSegments[segment.segmentId]
+                    : segment.targetText;
+                  const isSaving = saving === segment.segmentId;
 
-                return (
-                  <div
-                    key={segment.segmentId}
-                    className={`bg-gray-900 border rounded-xl p-4 space-y-3 ${
-                      segment.audioStale
-                        ? "border-yellow-700"
-                        : "border-gray-800"
-                    }`}
-                  >
-                    {/* Time + stale indicator */}
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-gray-500 font-mono">
-                        {formatTime(segment.startTime)} - {formatTime(segment.endTime)}
-                      </span>
-                      {segment.audioStale && (
-                        <span className="text-xs text-yellow-400">Yeniden seslendirme gerekli</span>
-                      )}
-                    </div>
-
-                    {/* Source text (read-only) */}
-                    <div>
-                      <p className="text-xs text-gray-500 mb-1">Türkçe (orijinal)</p>
-                      <p className="text-sm text-gray-400">{segment.sourceText}</p>
-                    </div>
-
-                    {/* Target text (editable) */}
-                    <div>
-                      <p className="text-xs text-gray-500 mb-1">
-                        {job.targetLangName} (çeviri)
-                      </p>
-                      <div className="flex gap-2">
-                        <textarea
-                          value={currentText}
-                          onChange={(e) =>
-                            handleTextChange(segment.segmentId, e.target.value)
-                          }
-                          rows={2}
-                          className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                        />
-                        {isEdited && (
-                          <button
-                            onClick={() => handleSaveSegment(segment.segmentId)}
-                            disabled={isSaving}
-                            className="self-end bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs px-3 py-2 rounded-lg transition-colors whitespace-nowrap"
-                          >
-                            {isSaving ? "..." : "Kaydet"}
-                          </button>
+                  return (
+                    <div
+                      key={segment.segmentId}
+                      className={`bg-gray-900 border rounded-xl p-4 space-y-3 ${
+                        segment.audioStale ? "border-yellow-700" : "border-gray-800"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-gray-500 font-mono">
+                          {formatTime(segment.startTime)} - {formatTime(segment.endTime)}
+                        </span>
+                        {segment.audioStale && (
+                          <span className="text-xs text-yellow-400">Düzenlendi</span>
                         )}
                       </div>
+
+                      {/* Source text */}
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Türkçe (orijinal)</p>
+                        <p className="text-sm text-gray-400">{segment.sourceText}</p>
+                      </div>
+
+                      {/* Target text — editable */}
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">
+                          {job.targetLangName} (çeviri)
+                        </p>
+                        <div className="flex gap-2">
+                          <textarea
+                            value={currentText}
+                            onChange={(e) =>
+                              handleTextChange(segment.segmentId, e.target.value)
+                            }
+                            rows={2}
+                            className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                          />
+                          {isEdited && (
+                            <button
+                              onClick={() => handleSaveSegment(segment.segmentId)}
+                              disabled={isSaving}
+                              className="self-end bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs px-3 py-2 rounded-lg transition-colors whitespace-nowrap"
+                            >
+                              {isSaving ? "..." : "Kaydet"}
+                            </button>
+                          )}
+                        </div>
+                      </div>
                     </div>
+                  );
+                })}
+              </div>
+
+              {/* Subtitle checkbox + Approve button */}
+              <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-4">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={subtitleEnabled}
+                    onChange={(e) => setSubtitleEnabled(e.target.checked)}
+                    className="w-5 h-5 rounded bg-gray-800 border-gray-600 text-blue-600 focus:ring-blue-500 focus:ring-offset-0"
+                  />
+                  <div>
+                    <p className="text-sm text-white">Videoya altyazı ekle</p>
+                    <p className="text-xs text-gray-500">
+                      {job.targetLangName} altyazı videoya gömülecek
+                    </p>
                   </div>
-                );
-              })}
-            </div>
+                </label>
+
+                <button
+                  onClick={handleFinalize}
+                  disabled={finalizing || hasUnsavedChanges}
+                  className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium py-3 rounded-lg transition-colors"
+                >
+                  {finalizing
+                    ? "Video oluşturuluyor..."
+                    : hasUnsavedChanges
+                    ? "Önce düzenlemeleri kaydedin"
+                    : "Onayla ve Videoyu Oluştur"}
+                </button>
+              </div>
+            </>
           )}
         </div>
       )}
