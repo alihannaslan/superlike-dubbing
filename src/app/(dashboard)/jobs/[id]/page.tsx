@@ -19,10 +19,13 @@ interface JobDetail {
 }
 
 interface Segment {
-  index: number;
+  segmentId?: string;
+  index?: number;
   startTime: number;
   endTime: number;
+  sourceText?: string;
   targetText: string;
+  audioStale?: boolean;
 }
 
 export default function JobDetailPage() {
@@ -30,7 +33,10 @@ export default function JobDetailPage() {
   const [job, setJob] = useState<JobDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [segments, setSegments] = useState<Segment[]>([]);
+  const [editable, setEditable] = useState(false);
+  const [editedSegments, setEditedSegments] = useState<Record<string, string>>({});
   const [loadingSegments, setLoadingSegments] = useState(false);
+  const [saving, setSaving] = useState<string | null>(null);
   const [subtitleEnabled, setSubtitleEnabled] = useState(false);
   const [finalizing, setFinalizing] = useState(false);
 
@@ -49,23 +55,21 @@ export default function JobDetailPage() {
     if (res.ok) {
       const data = await res.json();
       setSegments(data.segments);
+      setEditable(data.editable);
     }
     setLoadingSegments(false);
   }, [id]);
 
-  // Initial load
   useEffect(() => {
     fetchJob();
   }, [fetchJob]);
 
-  // Auto-fetch segments when status becomes REVIEW
   useEffect(() => {
     if (job?.status === "REVIEW" && segments.length === 0) {
       fetchSegments();
     }
   }, [job?.status, segments.length, fetchSegments]);
 
-  // Poll status while processing or finalizing
   useEffect(() => {
     if (!job) return;
     if (["COMPLETED", "FAILED", "REVIEW"].includes(job.status)) return;
@@ -96,16 +100,66 @@ export default function JobDetailPage() {
 
   function formatDate(dateStr: string) {
     return new Date(dateStr).toLocaleDateString("tr-TR", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
+      day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit",
     });
   }
 
+  function getSegmentKey(seg: Segment): string {
+    return seg.segmentId || `idx-${seg.index}`;
+  }
+
+  function handleTextChange(key: string, text: string) {
+    setEditedSegments((prev) => ({ ...prev, [key]: text }));
+  }
+
+  async function handleSaveSegment(segmentId: string) {
+    const text = editedSegments[segmentId];
+    if (text === undefined) return;
+
+    setSaving(segmentId);
+    const res = await fetch(`/api/dubbing/${id}/segments`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ segmentId, text }),
+    });
+
+    if (res.ok) {
+      setSegments((prev) =>
+        prev.map((s) =>
+          s.segmentId === segmentId ? { ...s, targetText: text, audioStale: true } : s
+        )
+      );
+      setEditedSegments((prev) => {
+        const next = { ...prev };
+        delete next[segmentId];
+        return next;
+      });
+    }
+    setSaving(null);
+  }
+
   async function handleFinalize() {
+    if (hasUnsavedChanges) return;
     setFinalizing(true);
+
+    // If editable and has stale segments, re-dub them first
+    const staleIds = segments
+      .filter((s) => s.audioStale && s.segmentId)
+      .map((s) => s.segmentId!);
+
+    if (editable && staleIds.length > 0) {
+      const redubRes = await fetch(`/api/dubbing/${id}/segments`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ segmentIds: staleIds }),
+      });
+      if (!redubRes.ok) {
+        const data = await redubRes.json();
+        alert(data.error || "Yeniden seslendirme başarısız");
+        setFinalizing(false);
+        return;
+      }
+    }
 
     const res = await fetch(`/api/dubbing/${id}/finalize`, {
       method: "POST",
@@ -118,17 +172,15 @@ export default function JobDetailPage() {
     } else {
       const data = await res.json();
       alert(data.error || "Bir hata oluştu");
-      setFinalizing(false);
     }
+    setFinalizing(false);
   }
 
-  if (loading) {
-    return <div className="text-gray-500">Yükleniyor...</div>;
-  }
+  const hasUnsavedChanges = Object.keys(editedSegments).length > 0;
+  const hasStaleSegments = segments.some((s) => s.audioStale);
 
-  if (!job) {
-    return <div className="text-red-400">Job bulunamadı</div>;
-  }
+  if (loading) return <div className="text-gray-500">Yükleniyor...</div>;
+  if (!job) return <div className="text-red-400">Job bulunamadı</div>;
 
   return (
     <div className="max-w-3xl">
@@ -167,7 +219,6 @@ export default function JobDetailPage() {
           )}
         </div>
 
-        {/* Processing spinner */}
         {(job.status === "PROCESSING" || job.status === "UPLOADING") && (
           <div className="bg-blue-900/20 border border-blue-800 rounded-lg p-4">
             <div className="flex items-center gap-3">
@@ -184,7 +235,6 @@ export default function JobDetailPage() {
           </div>
         )}
 
-        {/* Finalizing spinner */}
         {job.status === "FINALIZING" && (
           <div className="bg-indigo-900/20 border border-indigo-800 rounded-lg p-4">
             <div className="flex items-center gap-3">
@@ -192,21 +242,19 @@ export default function JobDetailPage() {
               <div>
                 <p className="text-indigo-300 text-sm font-medium">Video oluşturuluyor...</p>
                 <p className="text-indigo-400/60 text-xs mt-0.5">
-                  Video indiriliyor{subtitleEnabled ? " ve altyazı ekleniyor" : ""}
+                  {hasStaleSegments ? "Düzenlenen segmentler seslendiriliyor ve " : ""}Video hazırlanıyor
                 </p>
               </div>
             </div>
           </div>
         )}
 
-        {/* Error */}
         {job.status === "FAILED" && job.errorMessage && (
           <div className="bg-red-900/20 border border-red-800 rounded-lg p-4">
             <p className="text-red-300 text-sm">{job.errorMessage}</p>
           </div>
         )}
 
-        {/* Download — only when COMPLETED */}
         {job.status === "COMPLETED" && (
           <a
             href={`/api/dubbing/${job.id}/download`}
@@ -217,13 +265,15 @@ export default function JobDetailPage() {
         )}
       </div>
 
-      {/* Review Section — shown in REVIEW state */}
+      {/* Review Section */}
       {job.status === "REVIEW" && (
         <div className="mt-6 space-y-4">
           <div>
             <h2 className="text-lg font-semibold">Çeviriyi İncele</h2>
             <p className="text-gray-400 text-sm mt-1">
-              Çevirileri kontrol edin. Onayladıktan sonra video oluşturulacak.
+              {editable
+                ? "Çevirileri kontrol edin, düzenleyin. Onayladıktan sonra video oluşturulacak."
+                : "Çevirileri kontrol edin. Onayladıktan sonra video oluşturulacak."}
             </p>
           </div>
 
@@ -231,22 +281,70 @@ export default function JobDetailPage() {
             <div className="text-gray-500 text-sm py-8 text-center">Segmentler yükleniyor...</div>
           ) : (
             <>
-              {/* Segments */}
               <div className="space-y-3">
-                {segments.map((segment) => (
-                  <div
-                    key={segment.index}
-                    className="bg-gray-900 border border-gray-800 rounded-xl p-4 flex gap-4 items-start"
-                  >
-                    <span className="text-xs text-gray-500 font-mono whitespace-nowrap pt-0.5">
-                      {formatTime(segment.startTime)}
-                    </span>
-                    <p className="text-sm text-white flex-1">{segment.targetText}</p>
-                  </div>
-                ))}
+                {segments.map((segment) => {
+                  const key = getSegmentKey(segment);
+                  const isEdited = editedSegments[key] !== undefined;
+                  const currentText = isEdited ? editedSegments[key] : segment.targetText;
+                  const isSaving = saving === key;
+
+                  return (
+                    <div
+                      key={key}
+                      className={`bg-gray-900 border rounded-xl p-4 space-y-3 ${
+                        segment.audioStale ? "border-yellow-700" : "border-gray-800"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-gray-500 font-mono">
+                          {formatTime(segment.startTime)} - {formatTime(segment.endTime)}
+                        </span>
+                        {segment.audioStale && (
+                          <span className="text-xs text-yellow-400">Düzenlendi — yeniden seslendirilecek</span>
+                        )}
+                      </div>
+
+                      {/* Source text (only in editable mode) */}
+                      {editable && segment.sourceText && (
+                        <div>
+                          <p className="text-xs text-gray-500 mb-1">Türkçe (orijinal)</p>
+                          <p className="text-sm text-gray-400">{segment.sourceText}</p>
+                        </div>
+                      )}
+
+                      {/* Target text */}
+                      <div>
+                        {editable && (
+                          <p className="text-xs text-gray-500 mb-1">{job.targetLangName} (çeviri)</p>
+                        )}
+                        {editable && segment.segmentId ? (
+                          <div className="flex gap-2">
+                            <textarea
+                              value={currentText}
+                              onChange={(e) => handleTextChange(key, e.target.value)}
+                              rows={2}
+                              className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                            />
+                            {isEdited && (
+                              <button
+                                onClick={() => handleSaveSegment(segment.segmentId!)}
+                                disabled={isSaving}
+                                className="self-end bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs px-3 py-2 rounded-lg transition-colors whitespace-nowrap"
+                              >
+                                {isSaving ? "..." : "Kaydet"}
+                              </button>
+                            )}
+                          </div>
+                        ) : (
+                          <p className="text-sm text-white">{segment.targetText}</p>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
 
-              {/* Subtitle checkbox + Approve button */}
+              {/* Subtitle + Approve */}
               <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-4">
                 <label className="flex items-center gap-3 cursor-pointer">
                   <input
@@ -257,18 +355,20 @@ export default function JobDetailPage() {
                   />
                   <div>
                     <p className="text-sm text-white">Videoya altyazı ekle</p>
-                    <p className="text-xs text-gray-500">
-                      {job.targetLangName} altyazı videoya gömülecek
-                    </p>
+                    <p className="text-xs text-gray-500">{job.targetLangName} altyazı videoya gömülecek</p>
                   </div>
                 </label>
 
                 <button
                   onClick={handleFinalize}
-                  disabled={finalizing}
+                  disabled={finalizing || hasUnsavedChanges}
                   className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium py-3 rounded-lg transition-colors"
                 >
-                  {finalizing ? "Video oluşturuluyor..." : "Onayla ve Videoyu Oluştur"}
+                  {finalizing
+                    ? "Video oluşturuluyor..."
+                    : hasUnsavedChanges
+                    ? "Önce düzenlemeleri kaydedin"
+                    : "Onayla ve Videoyu Oluştur"}
                 </button>
               </div>
             </>

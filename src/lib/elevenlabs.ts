@@ -45,6 +45,7 @@ export async function createDubbing(
   formData.append("target_lang", targetLang);
   formData.append("num_speakers", "0");
   formData.append("watermark", "true");
+  formData.append("dubbing_studio", "true");
 
   const res = await fetch(`${API_BASE}/dubbing`, {
     method: "POST",
