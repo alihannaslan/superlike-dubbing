@@ -82,7 +82,7 @@ export async function POST(
     } catch {}
 
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Sunucu hatası" },
+      { error: "Bir hata oluştu, lütfen tekrar deneyin" },
       { status: 500 }
     );
   }

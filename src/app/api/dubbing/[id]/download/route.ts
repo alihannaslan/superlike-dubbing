@@ -21,12 +21,13 @@ export async function GET(
   }
 
   const fileBuffer = await readFile(job.dubbedFilePath);
-  const fileName = `${job.originalFileName.replace(/\.[^.]+$/, "")}-${job.targetLangName}.mp4`;
+  const rawName = `${job.originalFileName.replace(/\.[^.]+$/, "")}-${job.targetLangName}.mp4`;
+  const safeName = rawName.replace(/[^\w.\-]/g, "_");
 
   return new NextResponse(fileBuffer, {
     headers: {
       "Content-Type": "video/mp4",
-      "Content-Disposition": `attachment; filename="${fileName}"`,
+      "Content-Disposition": `attachment; filename="${safeName}"`,
     },
   });
 }

@@ -16,6 +16,19 @@ export async function POST(req: NextRequest) {
     const user = await getUser();
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+    // Per-user daily job limit
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const dailyJobCount = await prisma.dubbingJob.count({
+      where: { userId: user.id, createdAt: { gte: today } },
+    });
+    if (dailyJobCount >= 20) {
+      return NextResponse.json(
+        { error: "Günlük çeviri limitine ulaştınız (max 20)" },
+        { status: 429 }
+      );
+    }
+
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
     const targetLang = formData.get("targetLang") as string | null;
@@ -40,8 +53,12 @@ export async function POST(req: NextRequest) {
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
-    const uniqueName = `${Date.now()}-${file.name}`;
-    const filePath = path.join(process.cwd(), "uploads", uniqueName);
+    const safeFileName = `${Date.now()}-${crypto.randomUUID()}.${ext}`;
+    const filePath = path.join(process.cwd(), "uploads", safeFileName);
+    const resolved = path.resolve(filePath);
+    if (!resolved.startsWith(path.resolve(process.cwd(), "uploads"))) {
+      return NextResponse.json({ error: "Geçersiz dosya adı" }, { status: 400 });
+    }
     await writeFile(filePath, buffer);
 
     const job = await prisma.dubbingJob.create({
@@ -80,7 +97,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error("POST /api/dubbing error:", error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Sunucu hatası" },
+      { error: "Bir hata oluştu, lütfen tekrar deneyin" },
       { status: 500 }
     );
   }

@@ -110,7 +110,7 @@ export async function GET(
   } catch (error) {
     console.error("GET /api/dubbing/[id]/segments error:", error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Sunucu hatası" },
+      { error: "Bir hata oluştu, lütfen tekrar deneyin" },
       { status: 500 }
     );
   }
@@ -147,7 +147,7 @@ export async function PATCH(
   } catch (error) {
     console.error("PATCH /api/dubbing/[id]/segments error:", error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Sunucu hatası" },
+      { error: "Bir hata oluştu, lütfen tekrar deneyin" },
       { status: 500 }
     );
   }
@@ -184,7 +184,7 @@ export async function POST(
   } catch (error) {
     console.error("POST /api/dubbing/[id]/segments error:", error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Sunucu hatası" },
+      { error: "Bir hata oluştu, lütfen tekrar deneyin" },
       { status: 500 }
     );
   }

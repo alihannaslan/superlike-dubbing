@@ -43,7 +43,7 @@ export async function GET(
         where: { id: job.id },
         data: { status: "FAILED", errorMessage: result.error },
       });
-      return NextResponse.json({ status: "FAILED", error: result.error });
+      return NextResponse.json({ status: "FAILED", error: "Çeviri başarısız oldu" });
     }
 
     return NextResponse.json({ status: job.status });
