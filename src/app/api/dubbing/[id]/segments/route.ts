@@ -65,30 +65,17 @@ export async function GET(
       return NextResponse.json({ error: "Job bulunamadı" }, { status: 404 });
     }
 
-    // Fetch both source and target transcripts
-    const [sourceSRT, targetSRT] = await Promise.all([
-      getTranscriptSRT(job.dubbingId, "tr"),
-      getTranscriptSRT(job.dubbingId, job.targetLang),
-    ]);
-
-    const sourceSegments = parseSRT(sourceSRT);
-    const targetSegments = parseSRT(targetSRT);
-
-    // Merge by index
-    const segments = sourceSegments.map((src) => {
-      const target = targetSegments.find((t) => t.index === src.index);
-      return {
-        index: src.index,
-        startTime: src.startTime,
-        endTime: src.endTime,
-        sourceText: src.text,
-        targetText: target?.text || "",
-      };
-    });
+    // ElevenLabs only provides transcript for target language, not source
+    const targetSRT = await getTranscriptSRT(job.dubbingId, job.targetLang);
+    const segments = parseSRT(targetSRT);
 
     return NextResponse.json({
-      segments,
-      sourceLang: "tr",
+      segments: segments.map((s) => ({
+        index: s.index,
+        startTime: s.startTime,
+        endTime: s.endTime,
+        targetText: s.text,
+      })),
       targetLang: job.targetLang,
     });
   } catch (error) {

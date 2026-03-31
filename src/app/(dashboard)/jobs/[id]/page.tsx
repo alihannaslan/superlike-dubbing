@@ -22,7 +22,6 @@ interface Segment {
   index: number;
   startTime: number;
   endTime: number;
-  sourceText: string;
   targetText: string;
 }
 
@@ -237,23 +236,12 @@ export default function JobDetailPage() {
                 {segments.map((segment) => (
                   <div
                     key={segment.index}
-                    className="bg-gray-900 border border-gray-800 rounded-xl p-4 space-y-3"
+                    className="bg-gray-900 border border-gray-800 rounded-xl p-4 flex gap-4 items-start"
                   >
-                    <span className="text-xs text-gray-500 font-mono">
-                      {formatTime(segment.startTime)} - {formatTime(segment.endTime)}
+                    <span className="text-xs text-gray-500 font-mono whitespace-nowrap pt-0.5">
+                      {formatTime(segment.startTime)}
                     </span>
-
-                    {/* Source text */}
-                    <div>
-                      <p className="text-xs text-gray-500 mb-1">Türkçe</p>
-                      <p className="text-sm text-gray-400">{segment.sourceText}</p>
-                    </div>
-
-                    {/* Target text */}
-                    <div>
-                      <p className="text-xs text-gray-500 mb-1">{job.targetLangName}</p>
-                      <p className="text-sm text-white">{segment.targetText}</p>
-                    </div>
+                    <p className="text-sm text-white flex-1">{segment.targetText}</p>
                   </div>
                 ))}
               </div>
