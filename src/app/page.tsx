@@ -223,6 +223,46 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* VIDEO SHOWCASE */}
+      <section className="py-24">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold mb-3">Aynı Video, Farklı Diller</h2>
+            <p className="text-gray-500 max-w-md mx-auto">
+              Bir içerik, üç dilde — orijinal ses tonu ve vurgu korunarak
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              { lang: "Türkçe", flag: "🇹🇷", label: "Orijinal", src: "/videos/ilayda-tr.mp4" },
+              { lang: "English", flag: "🇬🇧", label: "AI Dubbing", src: "/videos/ilayda-en.mp4" },
+              { lang: "日本語", flag: "🇯🇵", label: "AI Dubbing", src: "/videos/ilayda-ja.mp4" },
+            ].map((v) => (
+              <div key={v.lang} className="group">
+                <div className="relative rounded-2xl overflow-hidden border border-gray-200 bg-black shadow-lg">
+                  <video
+                    className="w-full aspect-[9/16] object-cover"
+                    controls
+                    playsInline
+                    preload="metadata"
+                  >
+                    <source src={v.src} type="video/mp4" />
+                  </video>
+                </div>
+                <div className="flex items-center gap-2 mt-3">
+                  <span className="text-lg">{v.flag}</span>
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900">{v.lang}</p>
+                    <p className="text-xs text-gray-400">{v.label}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* HOW IT WORKS */}
       <section id="nasil-calisir" className="py-24 bg-white border-y border-gray-200">
         <div className="max-w-6xl mx-auto px-6">

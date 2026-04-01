@@ -50,3 +50,6 @@ dubbed/
 # prisma
 prisma/dev.db
 prisma/dev.db-journal
+
+# Large video files
+public/videos/
