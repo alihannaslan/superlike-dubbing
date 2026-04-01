@@ -326,18 +326,18 @@ export default function LandingPage() {
               </div>
               <div className="mb-2">
                 <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-bold">₺5.950</span>
+                  <span className="text-4xl font-bold">₺6.300</span>
                   <span className="text-gray-400 text-sm">/ 5 çeviri</span>
                 </div>
               </div>
-              <p className="text-sm text-green-400 mb-6">₺1.190 / video — %15 indirim</p>
+              <p className="text-sm text-green-400 mb-6">₺1.260 / video — %10 indirim</p>
               <ul className="space-y-3 mb-8">
                 {[
                   "Tek video ile aynı tüm özellikler",
                   "5 video veya 5 dil kombinasyonu",
                   "Öncelikli işlem sırası",
                   "Toplu indirme",
-                  "%15 tasarruf",
+                  "%10 tasarruf",
                 ].map((item) => (
                   <li key={item} className="flex items-start gap-2.5 text-sm text-gray-300">
                     <svg className="w-4 h-4 text-green-400 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -360,7 +360,7 @@ export default function LandingPage() {
           <div className="mt-8 text-center">
             <p className="text-sm text-gray-400">
               10+ video için özel fiyat teklifi almak ister misiniz?{" "}
-              <a href="mailto:info@superlike.com.tr" className="text-blue-600 hover:text-blue-700">
+              <a href="mailto:hello@superlike.com.tr" className="text-blue-600 hover:text-blue-700">
                 Bize ulaşın
               </a>
             </p>
@@ -380,7 +380,7 @@ export default function LandingPage() {
               </div>
               <div className="flex items-center justify-between sm:flex-col sm:items-start gap-1">
                 <span className="text-gray-500">5 video → 1 dil (paket)</span>
-                <span className="font-semibold">₺5.950 <span className="text-green-600 font-normal">(%15 indirim)</span></span>
+                <span className="font-semibold">₺6.300 <span className="text-green-600 font-normal">(%10 indirim)</span></span>
               </div>
             </div>
           </div>
@@ -450,7 +450,7 @@ export default function LandingPage() {
             <div>
               <h4 className="font-semibold text-sm mb-4">İletişim</h4>
               <ul className="space-y-2.5">
-                <li><a href="mailto:info@superlike.com.tr" className="text-sm text-gray-400 hover:text-white transition-colors">info@superlike.com.tr</a></li>
+                <li><a href="mailto:hello@superlike.com.tr" className="text-sm text-gray-400 hover:text-white transition-colors">hello@superlike.com.tr</a></li>
                 <li><a href="https://superlike.com.tr" target="_blank" rel="noopener noreferrer" className="text-sm text-gray-400 hover:text-white transition-colors">superlike.com.tr</a></li>
                 <li><Link href="/login" className="text-sm text-gray-400 hover:text-white transition-colors">Giriş Yap</Link></li>
                 <li><Link href="/register" className="text-sm text-gray-400 hover:text-white transition-colors">Kayıt Ol</Link></li>

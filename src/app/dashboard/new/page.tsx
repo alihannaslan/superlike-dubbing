@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { FileUpload } from "@/components/FileUpload";
 import { LanguageSelect } from "@/components/LanguageSelect";
+import { PRICING, formatTL } from "@/lib/pricing";
 
 export default function NewDubbingPage() {
   const router = useRouter();
@@ -64,10 +65,16 @@ export default function NewDubbingPage() {
           <LanguageSelect value={targetLang} onChange={setTargetLang} />
         </div>
 
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-2">
           <p className="text-xs text-gray-500">
             Kaynak dil: <span className="text-gray-700">Türkçe</span> (sabit)
           </p>
+          {file && targetLang && (
+            <div className="flex items-center justify-between pt-2 border-t border-gray-200">
+              <span className="text-sm text-gray-600">Bu çevirinin ücreti</span>
+              <span className="text-sm font-semibold text-gray-900">{formatTL(PRICING.perVideoPerLang)}</span>
+            </div>
+          )}
         </div>
 
         {error && <p className="text-red-500 text-sm">{error}</p>}
