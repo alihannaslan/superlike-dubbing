@@ -16,7 +16,7 @@ export async function burnSubtitles(
       "ffmpeg",
       [
         "-i", videoPath,
-        "-vf", `subtitles=${srtPath}:force_style='FontSize=24,PrimaryColour=&Hffffff,OutlineColour=&H000000,BorderStyle=3,Outline=2'`,
+        "-vf", `subtitles=${srtPath}:force_style='FontSize=12,FontName=Arial,PrimaryColour=&Hffffff,OutlineColour=&H000000,BorderStyle=3,Outline=1,Shadow=1,MarginV=20,Alignment=2'`,
         "-c:a", "copy",
         "-y",
         outputPath,
