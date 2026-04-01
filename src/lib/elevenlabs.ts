@@ -36,12 +36,13 @@ function getMimeType(fileName: string): string {
 export async function createDubbing(
   file: Buffer,
   fileName: string,
+  sourceLang: string,
   targetLang: string
 ): Promise<{ dubbing_id: string; expected_duration_sec: number }> {
   const formData = new FormData();
   const arrayBuffer = file.buffer.slice(file.byteOffset, file.byteOffset + file.byteLength) as ArrayBuffer;
   formData.append("file", new Blob([arrayBuffer], { type: getMimeType(fileName) }), fileName);
-  formData.append("source_lang", "tr");
+  formData.append("source_lang", sourceLang);
   formData.append("target_lang", targetLang);
   formData.append("num_speakers", "0");
   formData.append("watermark", "false");

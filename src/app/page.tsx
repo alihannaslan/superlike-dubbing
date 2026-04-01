@@ -26,7 +26,7 @@ const STEPS = [
   {
     num: "01",
     title: "Video Yükle",
-    desc: "Türkçe voiceover videonuzu platforma yükleyin. MP4, MOV, MP3 ve WAV formatları desteklenir.",
+    desc: "Videonuzu platforma yükleyin. MP4, MOV, MP3 ve WAV formatları desteklenir.",
     icon: (
       <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
@@ -36,7 +36,7 @@ const STEPS = [
   {
     num: "02",
     title: "Dil Seç",
-    desc: "28 desteklenen dilden hedef dili seçin. AI, konuşmacının ses tonunu ve vurgusunu korur.",
+    desc: "29 desteklenen dilden kaynak ve hedef dili seçin. AI, konuşmacının ses tonunu ve vurgusunu korur.",
     icon: (
       <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 21l5.25-11.25L21 21m-9-3h7.5M3 5.621a48.474 48.474 0 016-.371m0 0c1.12 0 2.233.038 3.334.114M9 5.25V3m3.334 2.364C11.176 10.658 7.69 15.08 3 17.502m9.334-12.138c.896.061 1.785.147 2.666.257m-4.589 8.495a18.023 18.023 0 01-3.827-5.802" />
@@ -67,7 +67,7 @@ const STEPS = [
 
 const FEATURES = [
   { title: "Ses Klonlama", desc: "Konuşmacının orijinal ses tonu korunur" },
-  { title: "28 Dil Desteği", desc: "Avrupa, Asya ve Orta Doğu dilleri" },
+  { title: "29 Dil Desteği", desc: "Avrupa, Asya ve Orta Doğu dilleri" },
   { title: "Altyazı Gömme", desc: "Videoya otomatik altyazı ekleme" },
   { title: "Hızlı İşlem", desc: "Dakikalar içinde çeviri hazır" },
   { title: "Kolay Kullanım", desc: "Teknik bilgi gerektirmez" },
@@ -121,7 +121,7 @@ export default function LandingPage() {
             </h1>
 
             <p className="text-lg text-gray-500 max-w-xl mx-auto mb-10 leading-relaxed">
-              Türkçe voiceover videolarınızı AI ile 28 dile çevirin.
+              Videolarınızı AI ile 29 dile çevirin.
               Orijinal ses tonu korunur, altyazı otomatik eklenir.
             </p>
 

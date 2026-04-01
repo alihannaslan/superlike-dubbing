@@ -4,6 +4,7 @@ export interface Language {
 }
 
 export const SUPPORTED_LANGUAGES: Language[] = [
+  { code: "tr", name: "Türkçe" },
   { code: "en", name: "English" },
   { code: "es", name: "Spanish" },
   { code: "fr", name: "French" },

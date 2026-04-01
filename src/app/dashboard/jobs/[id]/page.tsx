@@ -9,6 +9,8 @@ interface JobDetail {
   id: string;
   originalFileName: string;
   originalFileSize: number;
+  sourceLang: string;
+  sourceLangName: string;
   targetLang: string;
   targetLangName: string;
   status: string;
@@ -201,7 +203,7 @@ export default function JobDetailPage() {
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
             <p className="text-gray-400">Kaynak Dil</p>
-            <p className="text-gray-800">Türkçe</p>
+            <p className="text-gray-800">{job.sourceLangName || "Türkçe"}</p>
           </div>
           <div>
             <p className="text-gray-400">Hedef Dil</p>

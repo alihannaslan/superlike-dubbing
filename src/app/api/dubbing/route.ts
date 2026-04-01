@@ -31,10 +31,11 @@ export async function POST(req: NextRequest) {
 
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
+    const sourceLang = formData.get("sourceLang") as string | null;
     const targetLang = formData.get("targetLang") as string | null;
 
-    if (!file || !targetLang) {
-      return NextResponse.json({ error: "Dosya ve hedef dil gerekli" }, { status: 400 });
+    if (!file || !sourceLang || !targetLang) {
+      return NextResponse.json({ error: "Dosya, kaynak dil ve hedef dil gerekli" }, { status: 400 });
     }
 
     if (file.size > MAX_FILE_SIZE) {
@@ -47,9 +48,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Sadece MP4, MOV, MP3, WAV dosyaları kabul edilir" }, { status: 400 });
     }
 
-    const language = SUPPORTED_LANGUAGES.find((l) => l.code === targetLang);
-    if (!language) {
+    const sourceLanguage = SUPPORTED_LANGUAGES.find((l) => l.code === sourceLang);
+    const targetLanguage = SUPPORTED_LANGUAGES.find((l) => l.code === targetLang);
+    if (!sourceLanguage || !targetLanguage) {
       return NextResponse.json({ error: "Geçersiz dil seçimi" }, { status: 400 });
+    }
+
+    if (sourceLang === targetLang) {
+      return NextResponse.json({ error: "Kaynak ve hedef dil aynı olamaz" }, { status: 400 });
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
@@ -67,14 +73,16 @@ export async function POST(req: NextRequest) {
         originalFileName: file.name,
         originalFilePath: filePath,
         originalFileSize: file.size,
-        targetLang: language.code,
-        targetLangName: language.name,
+        sourceLang: sourceLanguage.code,
+        sourceLangName: sourceLanguage.name,
+        targetLang: targetLanguage.code,
+        targetLangName: targetLanguage.name,
         status: "UPLOADING",
       },
     });
 
     try {
-      const result = await createDubbing(buffer, file.name, targetLang);
+      const result = await createDubbing(buffer, file.name, sourceLang, targetLang);
       await prisma.dubbingJob.update({
         where: { id: job.id },
         data: {

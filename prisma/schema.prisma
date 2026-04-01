@@ -23,6 +23,8 @@ model DubbingJob {
   originalFileName String
   originalFilePath String
   originalFileSize Int
+  sourceLang       String    @default("tr")
+  sourceLangName   String    @default("Türkçe")
   targetLang       String
   targetLangName   String
   status           String    @default("PENDING")

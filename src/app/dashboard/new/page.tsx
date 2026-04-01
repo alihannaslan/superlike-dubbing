@@ -9,6 +9,7 @@ import { PRICING, formatTL } from "@/lib/pricing";
 export default function NewDubbingPage() {
   const router = useRouter();
   const [file, setFile] = useState<File | null>(null);
+  const [sourceLang, setSourceLang] = useState("tr");
   const [targetLang, setTargetLang] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -16,8 +17,13 @@ export default function NewDubbingPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    if (!file || !targetLang) {
-      setError("Dosya ve hedef dil seçimi gerekli");
+    if (!file || !sourceLang || !targetLang) {
+      setError("Dosya, kaynak dil ve hedef dil seçimi gerekli");
+      return;
+    }
+
+    if (sourceLang === targetLang) {
+      setError("Kaynak ve hedef dil aynı olamaz");
       return;
     }
 
@@ -26,6 +32,7 @@ export default function NewDubbingPage() {
 
     const formData = new FormData();
     formData.append("file", file);
+    formData.append("sourceLang", sourceLang);
     formData.append("targetLang", targetLang);
 
     try {
@@ -52,7 +59,7 @@ export default function NewDubbingPage() {
   return (
     <div className="max-w-xl">
       <h1 className="text-2xl font-bold mb-1">Yeni Çeviri</h1>
-      <p className="text-gray-500 text-sm mb-8">Video yükle ve hedef dil seç</p>
+      <p className="text-gray-500 text-sm mb-8">Video yükle, kaynak ve hedef dil seç</p>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
@@ -60,28 +67,35 @@ export default function NewDubbingPage() {
           <FileUpload onFileSelect={setFile} selectedFile={file} />
         </div>
 
-        <div>
-          <label className="block text-sm text-gray-700 mb-2">Hedef Dil</label>
-          <LanguageSelect value={targetLang} onChange={setTargetLang} />
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm text-gray-700 mb-2">Kaynak Dil</label>
+            <LanguageSelect value={sourceLang} onChange={setSourceLang} />
+          </div>
+          <div>
+            <label className="block text-sm text-gray-700 mb-2">Hedef Dil</label>
+            <LanguageSelect value={targetLang} onChange={setTargetLang} />
+          </div>
         </div>
 
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-2">
-          <p className="text-xs text-gray-500">
-            Kaynak dil: <span className="text-gray-700">Türkçe</span> (sabit)
-          </p>
-          {file && targetLang && (
-            <div className="flex items-center justify-between pt-2 border-t border-gray-200">
+        {sourceLang && targetLang && sourceLang === targetLang && (
+          <p className="text-red-500 text-sm">Kaynak ve hedef dil aynı olamaz</p>
+        )}
+
+        {file && targetLang && sourceLang !== targetLang && (
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+            <div className="flex items-center justify-between">
               <span className="text-sm text-gray-600">Bu çevirinin ücreti</span>
               <span className="text-sm font-semibold text-gray-900">{formatTL(PRICING.perVideoPerLang)}</span>
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {error && <p className="text-red-500 text-sm">{error}</p>}
 
         <button
           type="submit"
-          disabled={loading || !file || !targetLang}
+          disabled={loading || !file || !sourceLang || !targetLang || sourceLang === targetLang}
           className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium py-2.5 rounded-lg transition-colors"
         >
           {loading ? "Yükleniyor ve çeviri başlatılıyor..." : "Çeviriyi Başlat"}
