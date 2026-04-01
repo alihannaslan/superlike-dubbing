@@ -105,7 +105,9 @@ export async function POST(req: NextRequest) {
 
 export async function GET() {
   const user = await getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!user || !user.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  console.log("GET /api/dubbing — userId:", user.id, "email:", user.email);
 
   const jobs = await prisma.dubbingJob.findMany({
     where: { userId: user.id },
