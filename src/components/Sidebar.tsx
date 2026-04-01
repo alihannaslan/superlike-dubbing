@@ -5,8 +5,8 @@ import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 
 const NAV_ITEMS = [
-  { href: "/", label: "Dashboard", icon: "📋" },
-  { href: "/new", label: "Yeni Çeviri", icon: "🎬" },
+  { href: "/dashboard", label: "Dashboard", icon: "📋" },
+  { href: "/dashboard/new", label: "Yeni Çeviri", icon: "🎬" },
 ];
 
 export function Sidebar() {

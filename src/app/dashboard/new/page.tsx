@@ -41,7 +41,7 @@ export default function NewDubbingPage() {
         return;
       }
 
-      router.push(`/jobs/${data.id}`);
+      router.push(`/dashboard/jobs/${data.id}`);
     } catch {
       setError("Bağlantı hatası, lütfen tekrar deneyin");
       setLoading(false);

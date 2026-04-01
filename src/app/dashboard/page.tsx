@@ -45,7 +45,7 @@ export default function DashboardPage() {
           <p className="text-gray-500 text-sm mt-1">Video çevirileriniz</p>
         </div>
         <Link
-          href="/new"
+          href="/dashboard/new"
           className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
         >
           Yeni Çeviri
@@ -58,7 +58,7 @@ export default function DashboardPage() {
         <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-12 text-center">
           <p className="text-gray-500">Henüz çeviri yok</p>
           <Link
-            href="/new"
+            href="/dashboard/new"
             className="text-blue-600 hover:text-blue-700 text-sm mt-2 inline-block"
           >
             İlk çeviriyi başlat
@@ -84,7 +84,7 @@ export default function DashboardPage() {
                   <td className="px-4 py-3"><StatusBadge status={job.status} /></td>
                   <td className="px-4 py-3 text-sm text-gray-500">{formatDate(job.createdAt)}</td>
                   <td className="px-4 py-3 text-right">
-                    <Link href={`/jobs/${job.id}`} className="text-blue-600 hover:text-blue-700 text-sm">Detay</Link>
+                    <Link href={`/dashboard/jobs/${job.id}`} className="text-blue-600 hover:text-blue-700 text-sm">Detay</Link>
                   </td>
                 </tr>
               ))}

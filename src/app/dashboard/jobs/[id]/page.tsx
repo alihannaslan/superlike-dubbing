@@ -184,7 +184,7 @@ export default function JobDetailPage() {
 
   return (
     <div className="max-w-3xl">
-      <Link href="/" className="text-gray-500 hover:text-gray-900 text-sm mb-4 inline-block">
+      <Link href="/dashboard" className="text-gray-500 hover:text-gray-900 text-sm mb-4 inline-block">
         &larr; Dashboard
       </Link>
 
