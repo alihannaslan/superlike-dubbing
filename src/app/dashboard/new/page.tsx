@@ -22,10 +22,6 @@ export default function NewDubbingPage() {
       return;
     }
 
-    if (sourceLang === targetLang) {
-      setError("Kaynak ve hedef dil aynı olamaz");
-      return;
-    }
 
     setLoading(true);
     setError("");
@@ -78,11 +74,7 @@ export default function NewDubbingPage() {
           </div>
         </div>
 
-        {sourceLang && targetLang && sourceLang === targetLang && (
-          <p className="text-red-500 text-sm">Kaynak ve hedef dil aynı olamaz</p>
-        )}
-
-        {file && targetLang && sourceLang !== targetLang && (
+        {file && sourceLang && targetLang && (
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-600">Bu çevirinin ücreti</span>
@@ -95,7 +87,7 @@ export default function NewDubbingPage() {
 
         <button
           type="submit"
-          disabled={loading || !file || !sourceLang || !targetLang || sourceLang === targetLang}
+          disabled={loading || !file || !sourceLang || !targetLang}
           className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium py-2.5 rounded-lg transition-colors"
         >
           {loading ? "Yükleniyor ve çeviri başlatılıyor..." : "Çeviriyi Başlat"}

@@ -54,9 +54,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Geçersiz dil seçimi" }, { status: 400 });
     }
 
-    if (sourceLang === targetLang) {
-      return NextResponse.json({ error: "Kaynak ve hedef dil aynı olamaz" }, { status: 400 });
-    }
+
 
     const buffer = Buffer.from(await file.arrayBuffer());
     const safeFileName = `${Date.now()}-${crypto.randomUUID()}.${ext}`;
