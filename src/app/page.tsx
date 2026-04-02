@@ -90,14 +90,9 @@ export default function LandingPage() {
       <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-white/80 border-b border-gray-200/60">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <img src="https://superlike.com.tr/assets/superlike-logo.webp" alt="Superlike" className="h-7" />
-          <div className="flex items-center gap-4">
-            <Link href="/login" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
-              Giriş Yap
-            </Link>
-            <Link href="/register" className="text-sm bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors">
-              Ücretsiz Başla
-            </Link>
-          </div>
+          <Link href="/login" className="text-sm bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors">
+            Giriş Yap
+          </Link>
         </div>
       </nav>
 
@@ -127,7 +122,7 @@ export default function LandingPage() {
 
             <div className="flex items-center justify-center gap-4 mb-16">
               <Link
-                href="/register"
+                href="/login"
                 className="bg-gray-900 text-white px-7 py-3 rounded-xl text-sm font-semibold hover:bg-gray-800 transition-all hover:shadow-lg hover:shadow-gray-900/20 hover:-translate-y-0.5"
               >
                 Hemen Başla
@@ -308,125 +303,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* PRICING */}
-      <section id="fiyatlandirma" className="py-24 bg-white border-y border-gray-200">
-        <div className="max-w-4xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold mb-3">Fiyatlandırma</h2>
-            <p className="text-gray-500 max-w-md mx-auto">
-              Basit ve şeffaf — video başına, dil başına sabit ücret
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
-            {/* Tek Video */}
-            <div className="rounded-2xl border border-gray-200 p-8 bg-white hover:shadow-lg transition-shadow">
-              <div className="mb-6">
-                <h3 className="font-semibold text-lg mb-1">Tek Video</h3>
-                <p className="text-sm text-gray-500">Bir videoyu bir dile çevirin</p>
-              </div>
-              <div className="mb-6">
-                <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-bold">₺1.400</span>
-                  <span className="text-gray-400 text-sm">/ video / dil</span>
-                </div>
-              </div>
-              <ul className="space-y-3 mb-8">
-                {[
-                  "AI ses klonlama ile doğal çeviri",
-                  "28 dil seçeneği",
-                  "Altyazı ekleme (opsiyonel)",
-                  "Çeviri önizleme ve onay",
-                  "Orijinal ses tonu korunur",
-                ].map((item) => (
-                  <li key={item} className="flex items-start gap-2.5 text-sm text-gray-600">
-                    <svg className="w-4 h-4 text-green-600 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                    {item}
-                  </li>
-                ))}
-              </ul>
-              <Link
-                href="/register"
-                className="block w-full text-center bg-white border-2 border-gray-900 text-gray-900 px-6 py-3 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-colors"
-              >
-                Başla
-              </Link>
-            </div>
-
-            {/* Paket */}
-            <div className="rounded-2xl border-2 border-gray-900 p-8 bg-gray-900 text-white relative hover:shadow-xl transition-shadow">
-              <div className="absolute -top-3 left-8">
-                <span className="bg-blue-600 text-white text-xs font-semibold px-3 py-1 rounded-full">Popüler</span>
-              </div>
-              <div className="mb-6">
-                <h3 className="font-semibold text-lg mb-1">5&apos;li Paket</h3>
-                <p className="text-sm text-gray-400">5 video çevirisi — aynı veya farklı diller</p>
-              </div>
-              <div className="mb-2">
-                <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-bold">₺6.300</span>
-                  <span className="text-gray-400 text-sm">/ 5 çeviri</span>
-                </div>
-              </div>
-              <p className="text-sm text-green-400 mb-6">₺1.260 / video — %10 indirim</p>
-              <ul className="space-y-3 mb-8">
-                {[
-                  "Tek video ile aynı tüm özellikler",
-                  "5 video veya 5 dil kombinasyonu",
-                  "Öncelikli işlem sırası",
-                  "Toplu indirme",
-                  "%10 tasarruf",
-                ].map((item) => (
-                  <li key={item} className="flex items-start gap-2.5 text-sm text-gray-300">
-                    <svg className="w-4 h-4 text-green-400 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                    {item}
-                  </li>
-                ))}
-              </ul>
-              <Link
-                href="/register"
-                className="block w-full text-center bg-white text-gray-900 px-6 py-3 rounded-xl text-sm font-semibold hover:bg-gray-100 transition-colors"
-              >
-                Paketi Al
-              </Link>
-            </div>
-          </div>
-
-          {/* Pricing note */}
-          <div className="mt-8 text-center">
-            <p className="text-sm text-gray-400">
-              10+ video için özel fiyat teklifi almak ister misiniz?{" "}
-              <a href="mailto:hello@superlike.com.tr" className="text-blue-600 hover:text-blue-700">
-                Bize ulaşın
-              </a>
-            </p>
-          </div>
-
-          {/* Example calculation */}
-          <div className="mt-10 bg-gray-50 rounded-xl border border-gray-200 p-6">
-            <h4 className="text-sm font-semibold mb-4 text-gray-700">Örnek Hesaplama</h4>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
-              <div className="flex items-center justify-between sm:flex-col sm:items-start gap-1">
-                <span className="text-gray-500">1 video → 1 dil</span>
-                <span className="font-semibold">₺1.400</span>
-              </div>
-              <div className="flex items-center justify-between sm:flex-col sm:items-start gap-1">
-                <span className="text-gray-500">1 video → 3 dil</span>
-                <span className="font-semibold">₺4.200</span>
-              </div>
-              <div className="flex items-center justify-between sm:flex-col sm:items-start gap-1">
-                <span className="text-gray-500">5 video → 1 dil (paket)</span>
-                <span className="font-semibold">₺6.300 <span className="text-green-600 font-normal">(%10 indirim)</span></span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* CTA */}
       <section className="py-24">
         <div className="max-w-3xl mx-auto px-6">
@@ -437,10 +313,10 @@ export default function LandingPage() {
             <div className="relative px-10 py-16 text-center">
               <h2 className="text-3xl font-bold text-white mb-4">Videolarınızı bugün çevirmeye başlayın</h2>
               <p className="text-gray-400 mb-8 max-w-md mx-auto">
-                Hesap oluşturun ve ilk videonuzu dakikalar içinde farklı dillere çevirin.
+                İlk videonuzu dakikalar içinde farklı dillere çevirin.
               </p>
               <Link
-                href="/register"
+                href="/login"
                 className="inline-flex items-center gap-2 bg-white text-gray-900 px-7 py-3 rounded-xl text-sm font-semibold hover:bg-gray-100 transition-colors"
               >
                 Hemen Başla
@@ -482,7 +358,6 @@ export default function LandingPage() {
                 <li><a href="https://superlike.com.tr" target="_blank" rel="noopener noreferrer" className="text-sm text-gray-400 hover:text-white transition-colors">UGC İçerik</a></li>
                 <li><a href="https://superlike.com.tr" target="_blank" rel="noopener noreferrer" className="text-sm text-gray-400 hover:text-white transition-colors">Influencer Pazarlama</a></li>
                 <li><Link href="/" className="text-sm text-gray-400 hover:text-white transition-colors">Video Dubbing</Link></li>
-                <li><a href="#fiyatlandirma" className="text-sm text-gray-400 hover:text-white transition-colors">Fiyatlandırma</a></li>
               </ul>
             </div>
 
@@ -493,7 +368,6 @@ export default function LandingPage() {
                 <li><a href="mailto:hello@superlike.com.tr" className="text-sm text-gray-400 hover:text-white transition-colors">hello@superlike.com.tr</a></li>
                 <li><a href="https://superlike.com.tr" target="_blank" rel="noopener noreferrer" className="text-sm text-gray-400 hover:text-white transition-colors">superlike.com.tr</a></li>
                 <li><Link href="/login" className="text-sm text-gray-400 hover:text-white transition-colors">Giriş Yap</Link></li>
-                <li><Link href="/register" className="text-sm text-gray-400 hover:text-white transition-colors">Kayıt Ol</Link></li>
               </ul>
             </div>
           </div>
