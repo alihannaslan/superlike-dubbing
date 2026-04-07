@@ -16,8 +16,12 @@ export async function burnSubtitles(
       "ffmpeg",
       [
         "-i", videoPath,
-        "-vf", `subtitles=${srtPath}:force_style='FontSize=12,FontName=Noto Sans CJK JP,PrimaryColour=&Hffffff,OutlineColour=&H000000,BorderStyle=3,Outline=1,Shadow=1,MarginV=20,Alignment=2'`,
+        "-vf", `scale='min(1080,iw)':'-2',subtitles=${srtPath}:force_style='FontSize=18,FontName=Noto Sans CJK JP,PrimaryColour=&Hffffff,OutlineColour=&H000000,BorderStyle=3,Outline=1,Shadow=1,MarginV=30,Alignment=2'`,
+        "-c:v", "libx264",
+        "-preset", "ultrafast",
+        "-crf", "26",
         "-c:a", "copy",
+        "-threads", "2",
         "-y",
         outputPath,
       ],
