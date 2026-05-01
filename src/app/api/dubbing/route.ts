@@ -6,7 +6,10 @@ import path from "path";
 import { prisma } from "@/lib/db";
 import { getUser } from "@/lib/get-user";
 import { createDubbing } from "@/lib/elevenlabs";
+import { extractFrame } from "@/lib/ffmpeg";
 import { SUPPORTED_LANGUAGES } from "@/lib/languages";
+
+const VIDEO_EXTENSIONS = new Set(["mp4", "mov"]);
 
 const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB
 const ALLOWED_TYPES = ["video/mp4", "video/quicktime", "audio/mpeg", "audio/wav"];
@@ -57,13 +60,25 @@ export async function POST(req: NextRequest) {
 
 
     const buffer = Buffer.from(await file.arrayBuffer());
-    const safeFileName = `${Date.now()}-${crypto.randomUUID()}.${ext}`;
+    const baseName = `${Date.now()}-${crypto.randomUUID()}`;
+    const safeFileName = `${baseName}.${ext}`;
     const filePath = path.join(process.cwd(), "uploads", safeFileName);
     const resolved = path.resolve(filePath);
     if (!resolved.startsWith(path.resolve(process.cwd(), "uploads"))) {
       return NextResponse.json({ error: "Geçersiz dosya adı" }, { status: 400 });
     }
     await writeFile(filePath, buffer);
+
+    let previewFramePath: string | null = null;
+    if (VIDEO_EXTENSIONS.has(ext)) {
+      const thumbPath = path.join(process.cwd(), "uploads", `${baseName}-thumb.jpg`);
+      try {
+        await extractFrame(filePath, thumbPath, 1);
+        previewFramePath = thumbPath;
+      } catch (frameErr) {
+        console.error("Upload thumbnail extract failed:", frameErr);
+      }
+    }
 
     const job = await prisma.dubbingJob.create({
       data: {
@@ -76,6 +91,7 @@ export async function POST(req: NextRequest) {
         targetLang: targetLanguage.code,
         targetLangName: targetLanguage.name,
         status: "UPLOADING",
+        previewFramePath,
       },
     });
 
@@ -126,8 +142,14 @@ export async function GET() {
       status: true,
       createdAt: true,
       completedAt: true,
+      previewFramePath: true,
     },
   });
 
-  return NextResponse.json(jobs);
+  return NextResponse.json(
+    jobs.map(({ previewFramePath, ...rest }) => ({
+      ...rest,
+      hasPreviewFrame: !!previewFramePath,
+    }))
+  );
 }

@@ -12,6 +12,28 @@ interface Job {
   status: string;
   createdAt: string;
   completedAt: string | null;
+  hasPreviewFrame: boolean;
+}
+
+function Thumbnail({ job, className }: { job: Job; className: string }) {
+  if (job.hasPreviewFrame) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={`/api/dubbing/${job.id}/preview-frame`}
+        alt=""
+        className={`${className} object-cover bg-gray-900`}
+        loading="lazy"
+      />
+    );
+  }
+  return (
+    <div className={`${className} bg-gray-100 flex items-center justify-center`}>
+      <svg className="w-1/2 h-1/2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z" />
+      </svg>
+    </div>
+  );
 }
 
 export default function DashboardPage() {
@@ -72,15 +94,18 @@ export default function DashboardPage() {
               <Link
                 key={job.id}
                 href={`/dashboard/jobs/${job.id}`}
-                className="block bg-white border border-gray-200 shadow-sm rounded-xl p-4 hover:border-gray-300 transition-colors"
+                className="flex gap-3 bg-white border border-gray-200 shadow-sm rounded-xl p-3 hover:border-gray-300 transition-colors"
               >
-                <div className="flex items-start justify-between gap-3 mb-2">
-                  <p className="text-sm font-medium text-gray-900 truncate">{job.originalFileName}</p>
-                  <StatusBadge status={job.status} />
-                </div>
-                <div className="flex items-center justify-between text-xs text-gray-500">
-                  <span>{job.targetLangName}</span>
-                  <span>{formatDate(job.createdAt)}</span>
+                <Thumbnail job={job} className="w-14 h-20 shrink-0 rounded-md overflow-hidden" />
+                <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="text-sm font-medium text-gray-900 truncate">{job.originalFileName}</p>
+                    <StatusBadge status={job.status} />
+                  </div>
+                  <div className="flex items-center justify-between text-xs text-gray-500">
+                    <span>{job.targetLangName}</span>
+                    <span>{formatDate(job.createdAt)}</span>
+                  </div>
                 </div>
               </Link>
             ))}
@@ -101,7 +126,12 @@ export default function DashboardPage() {
               <tbody>
                 {jobs.map((job) => (
                   <tr key={job.id} className="border-b border-gray-100 hover:bg-gray-50">
-                    <td className="px-4 py-3 text-sm">{job.originalFileName}</td>
+                    <td className="px-4 py-3 text-sm">
+                      <div className="flex items-center gap-3">
+                        <Thumbnail job={job} className="w-10 h-14 shrink-0 rounded overflow-hidden" />
+                        <span className="truncate">{job.originalFileName}</span>
+                      </div>
+                    </td>
                     <td className="px-4 py-3 text-sm text-gray-600">{job.targetLangName}</td>
                     <td className="px-4 py-3"><StatusBadge status={job.status} /></td>
                     <td className="px-4 py-3 text-sm text-gray-500">{formatDate(job.createdAt)}</td>
