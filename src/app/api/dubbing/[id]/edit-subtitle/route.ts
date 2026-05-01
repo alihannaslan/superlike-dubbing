@@ -50,6 +50,7 @@ export async function POST(
         status: "SUBTITLE_REVIEW",
         completedAt: null,
         dubbedFilePath: null,
+        errorMessage: null,
       },
     });
 

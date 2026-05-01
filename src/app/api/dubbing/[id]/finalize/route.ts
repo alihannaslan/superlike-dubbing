@@ -110,6 +110,7 @@ export async function POST(
       await copyFile(job.intermediateFilePath, noSubsPath);
       finalPath = noSubsPath;
       await unlink(subtitledPath).catch(() => {});
+      await unlink(subtitledPath.replace(/\.mp4$/, ".srt")).catch(() => {});
     }
 
     await prisma.dubbingJob.update({
