@@ -6,11 +6,11 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Superlike Dubbing — AI Video Çeviri",
-  description: "Videolarınızı AI ile 35 dile çevirin. Orijinal ses tonu korunur, altyazı otomatik eklenir. Superlike tarafından geliştirildi.",
+  description: "Videolarınızı AI ile 34 dile çevirin. Orijinal ses tonu korunur, altyazı otomatik eklenir. Superlike tarafından geliştirildi.",
   keywords: ["video çeviri", "dubbing", "AI seslendirme", "video lokalizasyon", "altyazı", "superlike"],
   openGraph: {
     title: "Superlike Dubbing — AI Video Çeviri",
-    description: "Videolarınızı AI ile 35 dile çevirin. Orijinal ses tonu korunur, altyazı otomatik eklenir.",
+    description: "Videolarınızı AI ile 34 dile çevirin. Orijinal ses tonu korunur, altyazı otomatik eklenir.",
     url: "https://dub.superlike.com.tr",
     siteName: "Superlike Dubbing",
     locale: "tr_TR",
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Superlike Dubbing — AI Video Çeviri",
-    description: "Videolarınızı AI ile 35 dile çevirin. Orijinal ses tonu korunur, altyazı otomatik eklenir.",
+    description: "Videolarınızı AI ile 34 dile çevirin. Orijinal ses tonu korunur, altyazı otomatik eklenir.",
   },
 };
 
