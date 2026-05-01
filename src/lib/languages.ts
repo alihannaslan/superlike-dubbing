@@ -33,9 +33,4 @@ export const SUPPORTED_LANGUAGES: Language[] = [
   { code: "zh", name: "Chinese" },
   { code: "ko", name: "Korean" },
   { code: "hi", name: "Hindi" },
-  { code: "vi", name: "Vietnamese" },
-  { code: "hu", name: "Hungarian" },
-  { code: "no", name: "Norwegian" },
-  { code: "he", name: "Hebrew" },
-  { code: "th", name: "Thai" },
 ];
