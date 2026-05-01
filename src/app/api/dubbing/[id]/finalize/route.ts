@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import path from "path";
-import { copyFile } from "fs/promises";
+import { copyFile, unlink } from "fs/promises";
 import { prisma } from "@/lib/db";
 import { getUser } from "@/lib/get-user";
 import { getTranscriptSRT } from "@/lib/elevenlabs";
@@ -88,25 +88,28 @@ export async function POST(
       },
     });
 
+    const subtitledPath = path.join(
+      process.cwd(),
+      "dubbed",
+      `${job.dubbingId}-${job.targetLang}-subtitled.mp4`
+    );
+    const noSubsPath = path.join(
+      process.cwd(),
+      "dubbed",
+      `${job.dubbingId}-${job.targetLang}-final.mp4`
+    );
+
     let finalPath: string;
 
     if (subtitleEnabled && style) {
       const srtContent = await getTranscriptSRT(job.dubbingId, job.targetLang);
-      const subtitledPath = path.join(
-        process.cwd(),
-        "dubbed",
-        `${job.dubbingId}-${job.targetLang}-subtitled.mp4`
-      );
       await burnSubtitles(job.intermediateFilePath, srtContent, subtitledPath, style);
       finalPath = subtitledPath;
+      await unlink(noSubsPath).catch(() => {});
     } else {
-      const noSubsPath = path.join(
-        process.cwd(),
-        "dubbed",
-        `${job.dubbingId}-${job.targetLang}-final.mp4`
-      );
       await copyFile(job.intermediateFilePath, noSubsPath);
       finalPath = noSubsPath;
+      await unlink(subtitledPath).catch(() => {});
     }
 
     await prisma.dubbingJob.update({
