@@ -24,6 +24,13 @@ export async function GET(
   const rawName = `${job.originalFileName.replace(/\.[^.]+$/, "")}-${job.targetLangName}.mp4`;
   const safeName = rawName.replace(/[^\w.\-]/g, "_");
 
+  if (!job.downloadedAt) {
+    await prisma.dubbingJob.update({
+      where: { id: job.id },
+      data: { downloadedAt: new Date() },
+    });
+  }
+
   return new NextResponse(fileBuffer, {
     headers: {
       "Content-Type": "video/mp4",

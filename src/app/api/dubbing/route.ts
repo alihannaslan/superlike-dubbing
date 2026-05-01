@@ -142,6 +142,7 @@ export async function GET() {
       status: true,
       createdAt: true,
       completedAt: true,
+      downloadedAt: true,
       previewFramePath: true,
     },
   });

@@ -43,6 +43,7 @@ model DubbingJob {
   errorMessage     String?
   createdAt        DateTime  @default(now())
   completedAt      DateTime?
+  downloadedAt     DateTime?
 
   user User @relation(fields: [userId], references: [id])
 }

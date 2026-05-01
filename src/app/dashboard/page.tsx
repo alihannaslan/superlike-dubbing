@@ -12,6 +12,7 @@ interface Job {
   status: string;
   createdAt: string;
   completedAt: string | null;
+  downloadedAt: string | null;
   hasPreviewFrame: boolean;
 }
 
@@ -100,7 +101,7 @@ export default function DashboardPage() {
                 <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
                   <div className="flex items-start justify-between gap-2">
                     <p className="text-sm font-medium text-gray-900 truncate">{job.originalFileName}</p>
-                    <StatusBadge status={job.status} />
+                    <StatusBadge status={job.status} downloadedAt={job.downloadedAt} />
                   </div>
                   <div className="flex items-center justify-between text-xs text-gray-500">
                     <span>{job.targetLangName}</span>
@@ -133,7 +134,7 @@ export default function DashboardPage() {
                       </div>
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-600">{job.targetLangName}</td>
-                    <td className="px-4 py-3"><StatusBadge status={job.status} /></td>
+                    <td className="px-4 py-3"><StatusBadge status={job.status} downloadedAt={job.downloadedAt} /></td>
                     <td className="px-4 py-3 text-sm text-gray-500">{formatDate(job.createdAt)}</td>
                     <td className="px-4 py-3 text-right">
                       <Link href={`/dashboard/jobs/${job.id}`} className="text-blue-600 hover:text-blue-700 text-sm">Detay</Link>

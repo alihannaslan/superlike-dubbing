@@ -20,6 +20,7 @@ interface JobDetail {
   errorMessage: string | null;
   createdAt: string;
   completedAt: string | null;
+  downloadedAt: string | null;
   hasPreviewFrame?: boolean;
   subtitleFont?: string | null;
   subtitleSize?: number | null;
@@ -254,7 +255,7 @@ export default function JobDetailPage() {
             <p className="text-gray-400 text-sm mt-1">{formatSize(job.originalFileSize)}</p>
           </div>
           <div className="shrink-0">
-            <StatusBadge status={job.status} />
+            <StatusBadge status={job.status} downloadedAt={job.downloadedAt} />
           </div>
         </div>
 
