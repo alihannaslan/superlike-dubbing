@@ -54,8 +54,8 @@ export default function NewDubbingPage() {
 
   return (
     <div className="max-w-xl">
-      <h1 className="text-2xl font-bold mb-1">Yeni Çeviri</h1>
-      <p className="text-gray-500 text-sm mb-8">Video yükle, kaynak ve hedef dil seç</p>
+      <h1 className="text-xl sm:text-2xl font-bold mb-1">Yeni Çeviri</h1>
+      <p className="text-gray-500 text-sm mb-6 sm:mb-8">Video yükle, kaynak ve hedef dil seç</p>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
@@ -63,7 +63,7 @@ export default function NewDubbingPage() {
           <FileUpload onFileSelect={setFile} selectedFile={file} />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm text-gray-700 mb-2">Kaynak Dil</label>
             <LanguageSelect value={sourceLang} onChange={setSourceLang} />

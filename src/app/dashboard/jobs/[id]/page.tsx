@@ -4,6 +4,8 @@ import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { StatusBadge } from "@/components/StatusBadge";
+import { SubtitlePreview, type SubtitleStyleControls } from "@/components/SubtitlePreview";
+import { SUBTITLE_FONTS, DEFAULT_SUBTITLE_STYLE } from "@/lib/ffmpeg-constants";
 
 interface JobDetail {
   id: string;
@@ -18,6 +20,12 @@ interface JobDetail {
   errorMessage: string | null;
   createdAt: string;
   completedAt: string | null;
+  hasPreviewFrame?: boolean;
+  subtitleFont?: string | null;
+  subtitleSize?: number | null;
+  subtitleColor?: string | null;
+  subtitleBgColor?: string | null;
+  subtitleBgOpacity?: number | null;
 }
 
 interface Segment {
@@ -39,15 +47,25 @@ export default function JobDetailPage() {
   const [editedSegments, setEditedSegments] = useState<Record<string, string>>({});
   const [loadingSegments, setLoadingSegments] = useState(false);
   const [saving, setSaving] = useState<string | null>(null);
-  const [subtitleEnabled, setSubtitleEnabled] = useState(false);
+  const [dubbing, setDubbing] = useState(false);
   const [finalizing, setFinalizing] = useState(false);
+  const [style, setStyle] = useState<SubtitleStyleControls>(DEFAULT_SUBTITLE_STYLE);
 
   const fetchJob = useCallback(async () => {
     const res = await fetch(`/api/dubbing/${id}`);
     if (res.ok) {
-      const data = await res.json();
+      const data: JobDetail = await res.json();
       setJob(data);
       setLoading(false);
+      if (data.subtitleFont && data.subtitleSize && data.subtitleColor && data.subtitleBgColor && data.subtitleBgOpacity !== null && data.subtitleBgOpacity !== undefined) {
+        setStyle({
+          font: data.subtitleFont,
+          size: data.subtitleSize,
+          color: data.subtitleColor,
+          bgColor: data.subtitleBgColor,
+          bgOpacity: data.subtitleBgOpacity,
+        });
+      }
     }
   }, [id]);
 
@@ -67,14 +85,18 @@ export default function JobDetailPage() {
   }, [fetchJob]);
 
   useEffect(() => {
-    if (job?.status === "REVIEW" && segments.length === 0) {
+    if (!job) return;
+    if (
+      (job.status === "REVIEW" || job.status === "SUBTITLE_REVIEW") &&
+      segments.length === 0
+    ) {
       fetchSegments();
     }
-  }, [job?.status, segments.length, fetchSegments]);
+  }, [job, segments.length, fetchSegments]);
 
   useEffect(() => {
     if (!job) return;
-    if (["COMPLETED", "FAILED", "REVIEW"].includes(job.status)) return;
+    if (["COMPLETED", "FAILED", "REVIEW", "SUBTITLE_REVIEW"].includes(job.status)) return;
 
     const interval = setInterval(async () => {
       const res = await fetch(`/api/dubbing/${id}/status`);
@@ -87,7 +109,7 @@ export default function JobDetailPage() {
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [id, job?.status, fetchJob]);
+  }, [id, job, fetchJob]);
 
   function formatTime(seconds: number): string {
     const mins = Math.floor(seconds / 60);
@@ -140,11 +162,10 @@ export default function JobDetailPage() {
     setSaving(null);
   }
 
-  async function handleFinalize() {
+  async function handleStartDubbing() {
     if (hasUnsavedChanges) return;
-    setFinalizing(true);
+    setDubbing(true);
 
-    // If editable and has stale segments, re-dub them first
     const staleIds = segments
       .filter((s) => s.audioStale && s.segmentId)
       .map((s) => s.segmentId!);
@@ -158,15 +179,32 @@ export default function JobDetailPage() {
       if (!redubRes.ok) {
         const data = await redubRes.json();
         alert(data.error || "Yeniden seslendirme başarısız");
-        setFinalizing(false);
+        setDubbing(false);
         return;
       }
     }
 
+    const res = await fetch(`/api/dubbing/${id}/dub`, { method: "POST" });
+
+    if (res.ok) {
+      fetchJob();
+    } else {
+      const data = await res.json();
+      alert(data.error || "Bir hata oluştu");
+    }
+    setDubbing(false);
+  }
+
+  async function handleFinalize(withSubtitle: boolean) {
+    setFinalizing(true);
+    const body = withSubtitle
+      ? { subtitleEnabled: true, style }
+      : { subtitleEnabled: false };
+
     const res = await fetch(`/api/dubbing/${id}/finalize`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ subtitleEnabled }),
+      body: JSON.stringify(body),
     });
 
     if (res.ok) {
@@ -184,6 +222,9 @@ export default function JobDetailPage() {
   if (loading) return <div className="text-gray-400">Yükleniyor...</div>;
   if (!job) return <div className="text-red-500">Job bulunamadı</div>;
 
+  const sampleText = segments[0]?.targetText || "Örnek altyazı metni";
+  const frameUrl = job.hasPreviewFrame ? `/api/dubbing/${id}/preview-frame` : null;
+
   return (
     <div className="max-w-3xl">
       <Link href="/dashboard" className="text-gray-500 hover:text-gray-900 text-sm mb-4 inline-block">
@@ -191,13 +232,15 @@ export default function JobDetailPage() {
       </Link>
 
       {/* Job Info Card */}
-      <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-6 space-y-6">
-        <div className="flex items-start justify-between">
-          <div>
-            <h1 className="text-xl font-bold">{job.originalFileName}</h1>
+      <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-4 sm:p-6 space-y-6">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h1 className="text-lg sm:text-xl font-bold break-all">{job.originalFileName}</h1>
             <p className="text-gray-400 text-sm mt-1">{formatSize(job.originalFileSize)}</p>
           </div>
-          <StatusBadge status={job.status} />
+          <div className="shrink-0">
+            <StatusBadge status={job.status} />
+          </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4 text-sm">
@@ -237,15 +280,27 @@ export default function JobDetailPage() {
           </div>
         )}
 
+        {job.status === "DUBBING" && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+              <div>
+                <p className="text-blue-700 text-sm font-medium">Dublaj oluşturuluyor...</p>
+                <p className="text-blue-500 text-xs mt-0.5">
+                  Birazdan altyazı ayarlarını yapabileceksiniz
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {job.status === "FINALIZING" && (
           <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
             <div className="flex items-center gap-3">
               <div className="w-5 h-5 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
               <div>
                 <p className="text-indigo-700 text-sm font-medium">Video oluşturuluyor...</p>
-                <p className="text-indigo-500 text-xs mt-0.5">
-                  {hasStaleSegments ? "Düzenlenen segmentler seslendiriliyor ve " : ""}Video hazırlanıyor
-                </p>
+                <p className="text-indigo-500 text-xs mt-0.5">Final video hazırlanıyor</p>
               </div>
             </div>
           </div>
@@ -267,15 +322,15 @@ export default function JobDetailPage() {
         )}
       </div>
 
-      {/* Review Section */}
+      {/* REVIEW: Segment editor — Stage 0 → trigger Stage 1 (dubbing) */}
       {job.status === "REVIEW" && (
         <div className="mt-6 space-y-4">
           <div>
             <h2 className="text-lg font-semibold">Çeviriyi İncele</h2>
             <p className="text-gray-500 text-sm mt-1">
               {editable
-                ? "Çevirileri kontrol edin, düzenleyin. Onayladıktan sonra video oluşturulacak."
-                : "Çevirileri kontrol edin. Onayladıktan sonra video oluşturulacak."}
+                ? "Çevirileri kontrol edin ve düzenleyin. Onayladığınızda dublaj oluşturulacak ve sonra altyazı ayarlarına geçeceksiniz."
+                : "Çevirileri kontrol edin. Onayladığınızda dublaj oluşturulacak."}
             </p>
           </div>
 
@@ -297,7 +352,7 @@ export default function JobDetailPage() {
                         segment.audioStale ? "border-yellow-300" : "border-gray-200"
                       }`}
                     >
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
                         <span className="text-xs text-gray-400 font-mono">
                           {formatTime(segment.startTime)} - {formatTime(segment.endTime)}
                         </span>
@@ -306,7 +361,6 @@ export default function JobDetailPage() {
                         )}
                       </div>
 
-                      {/* Source text (only in editable mode) */}
                       {editable && segment.sourceText && (
                         <div>
                           <p className="text-xs text-gray-400 mb-1">Türkçe (orijinal)</p>
@@ -314,13 +368,12 @@ export default function JobDetailPage() {
                         </div>
                       )}
 
-                      {/* Target text */}
                       <div>
                         {editable && (
                           <p className="text-xs text-gray-400 mb-1">{job.targetLangName} (çeviri)</p>
                         )}
                         {editable && segment.segmentId ? (
-                          <div className="flex gap-2">
+                          <div className="flex flex-col sm:flex-row gap-2">
                             <textarea
                               value={currentText}
                               onChange={(e) => handleTextChange(key, e.target.value)}
@@ -331,7 +384,7 @@ export default function JobDetailPage() {
                               <button
                                 onClick={() => handleSaveSegment(segment.segmentId!)}
                                 disabled={isSaving}
-                                className="self-end bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs px-3 py-2 rounded-lg transition-colors whitespace-nowrap"
+                                className="sm:self-end bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs px-3 py-2 rounded-lg transition-colors whitespace-nowrap"
                               >
                                 {isSaving ? "..." : "Kaydet"}
                               </button>
@@ -346,35 +399,129 @@ export default function JobDetailPage() {
                 })}
               </div>
 
-              {/* Subtitle + Approve */}
-              <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-6 space-y-4">
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={subtitleEnabled}
-                    onChange={(e) => setSubtitleEnabled(e.target.checked)}
-                    className="w-5 h-5 rounded bg-white border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-offset-0"
-                  />
-                  <div>
-                    <p className="text-sm text-gray-900">Videoya altyazı ekle</p>
-                    <p className="text-xs text-gray-400">{job.targetLangName} altyazı videoya gömülecek</p>
-                  </div>
-                </label>
-
+              <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-4 sm:p-6">
                 <button
-                  onClick={handleFinalize}
-                  disabled={finalizing || hasUnsavedChanges}
+                  onClick={handleStartDubbing}
+                  disabled={dubbing || hasUnsavedChanges}
                   className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium py-3 rounded-lg transition-colors"
                 >
-                  {finalizing
-                    ? "Video oluşturuluyor..."
+                  {dubbing
+                    ? "Dublaj başlatılıyor..."
                     : hasUnsavedChanges
                     ? "Önce düzenlemeleri kaydedin"
-                    : "Onayla ve Videoyu Oluştur"}
+                    : hasStaleSegments
+                    ? "Yeniden seslendir ve Dublajı Oluştur"
+                    : "Onayla ve Dublajı Oluştur"}
                 </button>
+                <p className="text-xs text-gray-400 mt-3 text-center">
+                  Dublaj tamamlandıktan sonra altyazı ayarlarını yapacaksınız
+                </p>
               </div>
             </>
           )}
+        </div>
+      )}
+
+      {/* SUBTITLE_REVIEW: subtitle styling — Stage 2 */}
+      {job.status === "SUBTITLE_REVIEW" && (
+        <div className="mt-6 space-y-6">
+          <div>
+            <h2 className="text-lg font-semibold">Altyazı Ayarları</h2>
+            <p className="text-gray-500 text-sm mt-1">
+              Altyazı stilini özelleştirin veya altyazısız indirin. Önizleme yaklaşıktır — final video render edildiğinde küçük farklar olabilir.
+            </p>
+          </div>
+
+          <SubtitlePreview frameUrl={frameUrl} sampleText={sampleText} style={style} />
+
+          <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-4 sm:p-6 space-y-5">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Font</label>
+              <select
+                value={style.font}
+                onChange={(e) => setStyle((s) => ({ ...s, font: e.target.value }))}
+                className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                {SUBTITLE_FONTS.map((f) => (
+                  <option key={f.ffmpegName} value={f.ffmpegName}>
+                    {f.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Font Boyutu: <span className="text-gray-500">{style.size}pt</span>
+              </label>
+              <input
+                type="range"
+                min={12}
+                max={32}
+                value={style.size}
+                onChange={(e) => setStyle((s) => ({ ...s, size: Number(e.target.value) }))}
+                className="w-full"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Yazı Rengi</label>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="color"
+                    value={style.color}
+                    onChange={(e) => setStyle((s) => ({ ...s, color: e.target.value.toUpperCase() }))}
+                    className="w-12 h-10 rounded border border-gray-300 cursor-pointer"
+                  />
+                  <span className="text-sm text-gray-600 font-mono">{style.color}</span>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Arka Plan</label>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="color"
+                    value={style.bgColor}
+                    onChange={(e) => setStyle((s) => ({ ...s, bgColor: e.target.value.toUpperCase() }))}
+                    className="w-12 h-10 rounded border border-gray-300 cursor-pointer"
+                  />
+                  <span className="text-sm text-gray-600 font-mono">{style.bgColor}</span>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Arka Plan Opaklığı: <span className="text-gray-500">{style.bgOpacity}%</span>
+              </label>
+              <input
+                type="range"
+                min={0}
+                max={100}
+                value={style.bgOpacity}
+                onChange={(e) => setStyle((s) => ({ ...s, bgOpacity: Number(e.target.value) }))}
+                className="w-full"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <button
+              onClick={() => handleFinalize(true)}
+              disabled={finalizing}
+              className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-medium py-3 rounded-lg transition-colors"
+            >
+              {finalizing ? "Oluşturuluyor..." : "Altyazılı Olarak Tamamla"}
+            </button>
+            <button
+              onClick={() => handleFinalize(false)}
+              disabled={finalizing}
+              className="bg-white border border-gray-300 hover:border-gray-400 disabled:opacity-50 text-gray-700 font-medium py-3 rounded-lg transition-colors"
+            >
+              Altyazısız İndir
+            </button>
+          </div>
         </div>
       )}
     </div>

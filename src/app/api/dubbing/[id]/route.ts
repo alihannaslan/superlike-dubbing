@@ -19,5 +19,16 @@ export async function GET(
     return NextResponse.json({ error: "Job bulunamadı" }, { status: 404 });
   }
 
-  return NextResponse.json(job);
+  const {
+    originalFilePath: _originalFilePath,
+    dubbedFilePath: _dubbedFilePath,
+    intermediateFilePath: _intermediateFilePath,
+    previewFramePath,
+    ...safe
+  } = job;
+
+  return NextResponse.json({
+    ...safe,
+    hasPreviewFrame: !!previewFramePath,
+  });
 }

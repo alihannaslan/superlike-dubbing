@@ -51,7 +51,7 @@ export function FileUpload({ onFileSelect, selectedFile }: FileUploadProps) {
         onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
         onDragLeave={() => setDragActive(false)}
         onDrop={handleDrop}
-        className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors cursor-pointer ${
+        className={`border-2 border-dashed rounded-xl p-6 sm:p-8 text-center transition-colors cursor-pointer ${
           dragActive
             ? "border-blue-500 bg-blue-50"
             : selectedFile
@@ -70,7 +70,7 @@ export function FileUpload({ onFileSelect, selectedFile }: FileUploadProps) {
 
         {selectedFile ? (
           <div>
-            <p className="text-green-600 font-medium">{selectedFile.name}</p>
+            <p className="text-green-600 font-medium break-all">{selectedFile.name}</p>
             <p className="text-gray-400 text-sm mt-1">{formatSize(selectedFile.size)}</p>
           </div>
         ) : (

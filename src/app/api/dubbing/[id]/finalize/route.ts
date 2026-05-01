@@ -1,12 +1,46 @@
 import { NextRequest, NextResponse } from "next/server";
-import { writeFile } from "fs/promises";
 import path from "path";
+import { copyFile } from "fs/promises";
 import { prisma } from "@/lib/db";
 import { getUser } from "@/lib/get-user";
-import { getDubbedAudio, getTranscriptSRT } from "@/lib/elevenlabs";
-import { burnSubtitles } from "@/lib/ffmpeg";
+import { getTranscriptSRT } from "@/lib/elevenlabs";
+import { burnSubtitles, SUBTITLE_FONTS, type SubtitleStyle } from "@/lib/ffmpeg";
 
 export const maxDuration = 600;
+
+interface FinalizeBody {
+  subtitleEnabled: boolean;
+  style?: {
+    font?: string;
+    size?: number;
+    color?: string;
+    bgColor?: string;
+    bgOpacity?: number;
+  };
+}
+
+function isHexColor(value: string): boolean {
+  return /^#[0-9A-Fa-f]{6}$/.test(value);
+}
+
+function validateStyle(input: FinalizeBody["style"]): SubtitleStyle | null {
+  if (!input) return null;
+  const fontMatch = SUBTITLE_FONTS.find((f) => f.ffmpegName === input.font);
+  if (!fontMatch) return null;
+  const size = Number(input.size);
+  if (!Number.isFinite(size) || size < 10 || size > 40) return null;
+  if (!input.color || !isHexColor(input.color)) return null;
+  if (!input.bgColor || !isHexColor(input.bgColor)) return null;
+  const opacity = Number(input.bgOpacity);
+  if (!Number.isFinite(opacity) || opacity < 0 || opacity > 100) return null;
+  return {
+    font: fontMatch.ffmpegName,
+    size,
+    color: input.color,
+    bgColor: input.bgColor,
+    bgOpacity: opacity,
+  };
+}
 
 export async function POST(
   req: NextRequest,
@@ -18,44 +52,61 @@ export async function POST(
     const user = await getUser();
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { subtitleEnabled } = await req.json();
+    const body = (await req.json()) as FinalizeBody;
+    const { subtitleEnabled } = body;
+
+    let style: SubtitleStyle | null = null;
+    if (subtitleEnabled) {
+      style = validateStyle(body.style);
+      if (!style) {
+        return NextResponse.json(
+          { error: "Geçersiz altyazı ayarları" },
+          { status: 400 }
+        );
+      }
+    }
 
     const job = await prisma.dubbingJob.findFirst({
       where: { id, userId: user.id },
     });
 
-    if (!job || !job.dubbingId) {
+    if (!job || !job.dubbingId || !job.intermediateFilePath) {
       return NextResponse.json({ error: "Job bulunamadı" }, { status: 404 });
     }
 
     await prisma.dubbingJob.update({
       where: { id: job.id },
       data: {
-        subtitleEnabled: !!subtitleEnabled,
         status: "FINALIZING",
+        subtitleEnabled,
+        subtitleFont: style?.font ?? null,
+        subtitleSize: style?.size ?? null,
+        subtitleColor: style?.color ?? null,
+        subtitleBgColor: style?.bgColor ?? null,
+        subtitleBgOpacity: style?.bgOpacity ?? null,
         completedAt: null,
-        dubbedFilePath: null,
       },
     });
 
-    // Download dubbed video
-    const audioBuffer = await getDubbedAudio(job.dubbingId, job.targetLang);
-    const dubbedFileName = `${job.dubbingId}-${job.targetLang}.mp4`;
-    const dubbedPath = path.join(process.cwd(), "dubbed", dubbedFileName);
-    await writeFile(dubbedPath, audioBuffer);
+    let finalPath: string;
 
-    let finalPath = dubbedPath;
-
-    // Burn subtitles if requested
-    if (subtitleEnabled) {
+    if (subtitleEnabled && style) {
       const srtContent = await getTranscriptSRT(job.dubbingId, job.targetLang);
       const subtitledPath = path.join(
         process.cwd(),
         "dubbed",
         `${job.dubbingId}-${job.targetLang}-subtitled.mp4`
       );
-      await burnSubtitles(dubbedPath, srtContent, subtitledPath);
+      await burnSubtitles(job.intermediateFilePath, srtContent, subtitledPath, style);
       finalPath = subtitledPath;
+    } else {
+      const noSubsPath = path.join(
+        process.cwd(),
+        "dubbed",
+        `${job.dubbingId}-${job.targetLang}-final.mp4`
+      );
+      await copyFile(job.intermediateFilePath, noSubsPath);
+      finalPath = noSubsPath;
     }
 
     await prisma.dubbingJob.update({

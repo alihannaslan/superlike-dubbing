@@ -20,8 +20,13 @@ export async function GET(
     return NextResponse.json({ error: "Job bulunamadı" }, { status: 404 });
   }
 
-  // Terminal states — no polling needed
-  if (!job.dubbingId || ["COMPLETED", "FAILED", "REVIEW"].includes(job.status)) {
+  // Skip ElevenLabs check for our internal post-review states
+  if (
+    !job.dubbingId ||
+    ["COMPLETED", "FAILED", "REVIEW", "DUBBING", "SUBTITLE_REVIEW", "FINALIZING"].includes(
+      job.status
+    )
+  ) {
     return NextResponse.json({ status: job.status });
   }
 

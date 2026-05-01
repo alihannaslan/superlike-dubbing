@@ -32,7 +32,14 @@ model DubbingJob {
   dubbingId        String?
   expectedDuration Int?
   dubbedFilePath   String?
+  intermediateFilePath String?
+  previewFramePath String?
   subtitleEnabled  Boolean   @default(false)
+  subtitleFont     String?
+  subtitleSize     Int?
+  subtitleColor    String?
+  subtitleBgColor  String?
+  subtitleBgOpacity Int?
   errorMessage     String?
   createdAt        DateTime  @default(now())
   completedAt      DateTime?

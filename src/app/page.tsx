@@ -88,26 +88,26 @@ export default function LandingPage() {
     <div className="min-h-screen bg-[#fafafa]">
       {/* NAV */}
       <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-white/80 border-b border-gray-200/60">
-        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <img src="https://superlike.com.tr/assets/superlike-logo.webp" alt="Superlike" className="h-7" />
-          <Link href="/login" className="text-sm bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+          <img src="https://superlike.com.tr/assets/superlike-logo.webp" alt="Superlike" className="h-6 sm:h-7" />
+          <Link href="/login" className="text-sm bg-gray-900 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors">
             Giriş Yap
           </Link>
         </div>
       </nav>
 
       {/* HERO */}
-      <section className="relative pt-32 pb-20 overflow-hidden">
+      <section className="relative pt-24 sm:pt-32 pb-16 sm:pb-20 overflow-hidden">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-gradient-to-b from-blue-100/40 via-purple-50/30 to-transparent rounded-full blur-3xl pointer-events-none" />
 
-        <div className="relative max-w-6xl mx-auto px-6">
+        <div className="relative max-w-6xl mx-auto px-4 sm:px-6">
           <div className="max-w-3xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 bg-white border border-gray-200 rounded-full px-4 py-1.5 mb-8 shadow-sm">
+            <div className="inline-flex items-center gap-2 bg-white border border-gray-200 rounded-full px-4 py-1.5 mb-6 sm:mb-8 shadow-sm">
               <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
               <span className="text-xs text-gray-600 font-medium">AI Destekli Video Çeviri</span>
             </div>
 
-            <h1 className="text-5xl sm:text-6xl font-bold tracking-tight leading-[1.1] mb-6">
+            <h1 className="text-4xl sm:text-6xl font-bold tracking-tight leading-[1.1] mb-5 sm:mb-6">
               Videolarınızı
               <br />
               <span className="bg-gradient-to-r from-blue-600 via-violet-600 to-purple-600 bg-clip-text text-transparent">
@@ -115,12 +115,12 @@ export default function LandingPage() {
               </span>
             </h1>
 
-            <p className="text-lg text-gray-500 max-w-xl mx-auto mb-10 leading-relaxed">
+            <p className="text-base sm:text-lg text-gray-500 max-w-xl mx-auto mb-8 sm:mb-10 leading-relaxed">
               Videolarınızı AI ile 29 dile çevirin.
               Orijinal ses tonu korunur, altyazı otomatik eklenir.
             </p>
 
-            <div className="flex items-center justify-center gap-4 mb-16">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mb-12 sm:mb-16">
               <Link
                 href="/login"
                 className="bg-gray-900 text-white px-7 py-3 rounded-xl text-sm font-semibold hover:bg-gray-800 transition-all hover:shadow-lg hover:shadow-gray-900/20 hover:-translate-y-0.5"
@@ -159,7 +159,7 @@ export default function LandingPage() {
       </section>
 
       {/* APP PREVIEW */}
-      <section className="max-w-5xl mx-auto px-6 pb-24">
+      <section className="max-w-5xl mx-auto px-4 sm:px-6 pb-16 sm:pb-24">
         <div className="relative rounded-2xl overflow-hidden border border-gray-200 shadow-2xl shadow-gray-200/50 bg-white">
           <div className="flex items-center gap-2 px-4 py-3 bg-gray-50 border-b border-gray-200">
             <div className="flex gap-1.5">
@@ -173,8 +173,8 @@ export default function LandingPage() {
               </div>
             </div>
           </div>
-          <div className="p-8 bg-gray-50">
-            <div className="flex gap-6">
+          <div className="p-4 sm:p-8 bg-gray-50">
+            <div className="flex gap-4 sm:gap-6">
               <div className="w-48 shrink-0 hidden sm:block">
                 <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-3">
                   <div className="h-5 w-20 bg-gray-200 rounded" />
@@ -219,11 +219,11 @@ export default function LandingPage() {
       </section>
 
       {/* VIDEO SHOWCASE */}
-      <section className="py-24">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-3">Aynı Video, Farklı Diller</h2>
-            <p className="text-gray-500 max-w-md mx-auto">
+      <section className="py-16 sm:py-24">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="text-center mb-10 sm:mb-12">
+            <h2 className="text-2xl sm:text-3xl font-bold mb-3">Aynı Video, Farklı Diller</h2>
+            <p className="text-gray-500 max-w-md mx-auto px-2">
               Bir içerik, üç dilde — orijinal ses tonu ve vurgu korunarak
             </p>
           </div>
@@ -259,13 +259,13 @@ export default function LandingPage() {
       </section>
 
       {/* HOW IT WORKS */}
-      <section id="nasil-calisir" className="py-24 bg-white border-y border-gray-200">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold mb-3">Nasıl Çalışır?</h2>
-            <p className="text-gray-500 max-w-md mx-auto">4 basit adımda videolarınızı farklı dillere çevirin</p>
+      <section id="nasil-calisir" className="py-16 sm:py-24 bg-white border-y border-gray-200">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="text-center mb-12 sm:mb-16">
+            <h2 className="text-2xl sm:text-3xl font-bold mb-3">Nasıl Çalışır?</h2>
+            <p className="text-gray-500 max-w-md mx-auto px-2">4 basit adımda videolarınızı farklı dillere çevirin</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
             {STEPS.map((step) => (
               <div key={step.num} className="group relative p-6 rounded-2xl border border-gray-200 hover:border-gray-300 hover:shadow-lg hover:shadow-gray-100/50 transition-all duration-300 bg-white">
                 <div className="flex items-center gap-3 mb-4">
@@ -283,11 +283,11 @@ export default function LandingPage() {
       </section>
 
       {/* FEATURES */}
-      <section className="py-24">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold mb-3">Neden Superlike Dubbing?</h2>
-            <p className="text-gray-500 max-w-md mx-auto">AI teknolojisi ile profesyonel video çeviri</p>
+      <section className="py-16 sm:py-24">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="text-center mb-12 sm:mb-16">
+            <h2 className="text-2xl sm:text-3xl font-bold mb-3">Neden Superlike Dubbing?</h2>
+            <p className="text-gray-500 max-w-md mx-auto px-2">AI teknolojisi ile profesyonel video çeviri</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {FEATURES.map((f) => (
@@ -304,14 +304,14 @@ export default function LandingPage() {
       </section>
 
       {/* CTA */}
-      <section className="py-24">
-        <div className="max-w-3xl mx-auto px-6">
+      <section className="py-16 sm:py-24">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6">
           <div className="relative rounded-3xl overflow-hidden">
             <div className="absolute inset-0 bg-gray-900" />
             <div className="absolute inset-0 bg-gradient-to-br from-blue-600/20 via-transparent to-purple-600/20" />
             <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl" />
-            <div className="relative px-10 py-16 text-center">
-              <h2 className="text-3xl font-bold text-white mb-4">Videolarınızı bugün çevirmeye başlayın</h2>
+            <div className="relative px-6 sm:px-10 py-12 sm:py-16 text-center">
+              <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">Videolarınızı bugün çevirmeye başlayın</h2>
               <p className="text-gray-400 mb-8 max-w-md mx-auto">
                 İlk videonuzu dakikalar içinde farklı dillere çevirin.
               </p>
@@ -331,9 +331,9 @@ export default function LandingPage() {
 
       {/* FOOTER */}
       <footer className="bg-gray-900 text-white">
-        <div className="max-w-6xl mx-auto px-6">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
           {/* Main footer */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-10 py-16">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 sm:gap-10 py-12 sm:py-16">
             {/* Brand */}
             <div className="md:col-span-2">
               <img src="https://superlike.com.tr/assets/superlike-logo.webp" alt="Superlike" className="h-7 brightness-0 invert mb-4" />
