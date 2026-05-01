@@ -49,6 +49,7 @@ export default function JobDetailPage() {
   const [saving, setSaving] = useState<string | null>(null);
   const [dubbing, setDubbing] = useState(false);
   const [finalizing, setFinalizing] = useState(false);
+  const [editingSubtitle, setEditingSubtitle] = useState(false);
   const [style, setStyle] = useState<SubtitleStyleControls>(DEFAULT_SUBTITLE_STYLE);
 
   const fetchJob = useCallback(async () => {
@@ -195,6 +196,20 @@ export default function JobDetailPage() {
     setDubbing(false);
   }
 
+  async function handleEditSubtitle() {
+    setEditingSubtitle(true);
+    const res = await fetch(`/api/dubbing/${id}/edit-subtitle`, { method: "POST" });
+    if (res.ok) {
+      setSegments([]);
+      setEditedSegments({});
+      fetchJob();
+    } else {
+      const data = await res.json();
+      alert(data.error || "Düzenleme başlatılamadı");
+    }
+    setEditingSubtitle(false);
+  }
+
   async function handleFinalize(withSubtitle: boolean) {
     setFinalizing(true);
     const body = withSubtitle
@@ -313,12 +328,21 @@ export default function JobDetailPage() {
         )}
 
         {job.status === "COMPLETED" && (
-          <a
-            href={`/api/dubbing/${job.id}/download`}
-            className="block w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2.5 rounded-lg transition-colors text-center"
-          >
-            Çevrilmiş Videoyu İndir
-          </a>
+          <div className="space-y-2">
+            <a
+              href={`/api/dubbing/${job.id}/download`}
+              className="block w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2.5 rounded-lg transition-colors text-center"
+            >
+              Çevrilmiş Videoyu İndir
+            </a>
+            <button
+              onClick={handleEditSubtitle}
+              disabled={editingSubtitle}
+              className="block w-full bg-white border border-gray-300 hover:border-gray-400 disabled:opacity-50 text-gray-700 font-medium py-2.5 rounded-lg transition-colors text-center"
+            >
+              {editingSubtitle ? "Hazırlanıyor..." : "Altyazıyı Düzenle"}
+            </button>
+          </div>
         )}
       </div>
 
