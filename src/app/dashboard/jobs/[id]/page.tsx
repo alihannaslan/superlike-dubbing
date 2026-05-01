@@ -6,6 +6,7 @@ import Link from "next/link";
 import { StatusBadge } from "@/components/StatusBadge";
 import { SubtitlePreview, type SubtitleStyleControls } from "@/components/SubtitlePreview";
 import { SUBTITLE_FONTS, DEFAULT_SUBTITLE_STYLE } from "@/lib/ffmpeg-constants";
+import { getLanguageFlag } from "@/lib/languages";
 
 interface JobDetail {
   id: string;
@@ -262,11 +263,17 @@ export default function JobDetailPage() {
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
             <p className="text-gray-400">Kaynak Dil</p>
-            <p className="text-gray-800">{job.sourceLangName || "Türkçe"}</p>
+            <p className="text-gray-800 flex items-center gap-2">
+              <span className="text-base leading-none">{getLanguageFlag(job.sourceLang)}</span>
+              {job.sourceLangName || "Türkçe"}
+            </p>
           </div>
           <div>
             <p className="text-gray-400">Hedef Dil</p>
-            <p className="text-gray-800">{job.targetLangName}</p>
+            <p className="text-gray-800 flex items-center gap-2">
+              <span className="text-base leading-none">{getLanguageFlag(job.targetLang)}</span>
+              {job.targetLangName}
+            </p>
           </div>
           <div>
             <p className="text-gray-400">Oluşturulma</p>

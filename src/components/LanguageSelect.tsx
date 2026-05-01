@@ -15,7 +15,7 @@ export function LanguageSelect({ value, onChange }: LanguageSelectProps) {
       <option value="">Dil seçin</option>
       {SUPPORTED_LANGUAGES.map((lang) => (
         <option key={lang.code} value={lang.code}>
-          {lang.name}
+          {lang.flag} {lang.name}
         </option>
       ))}
     </select>

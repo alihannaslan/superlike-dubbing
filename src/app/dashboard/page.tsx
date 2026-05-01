@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { StatusBadge } from "@/components/StatusBadge";
+import { getLanguageFlag } from "@/lib/languages";
 
 interface Job {
   id: string;
@@ -104,7 +105,10 @@ export default function DashboardPage() {
                     <StatusBadge status={job.status} downloadedAt={job.downloadedAt} />
                   </div>
                   <div className="flex items-center justify-between text-xs text-gray-500">
-                    <span>{job.targetLangName}</span>
+                    <span className="flex items-center gap-1.5">
+                      <span className="text-sm leading-none">{getLanguageFlag(job.targetLang)}</span>
+                      {job.targetLangName}
+                    </span>
                     <span>{formatDate(job.createdAt)}</span>
                   </div>
                 </div>
@@ -133,7 +137,12 @@ export default function DashboardPage() {
                         <span className="truncate">{job.originalFileName}</span>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-600">{job.targetLangName}</td>
+                    <td className="px-4 py-3 text-sm text-gray-600">
+                      <span className="inline-flex items-center gap-2">
+                        <span className="text-base leading-none">{getLanguageFlag(job.targetLang)}</span>
+                        {job.targetLangName}
+                      </span>
+                    </td>
                     <td className="px-4 py-3"><StatusBadge status={job.status} downloadedAt={job.downloadedAt} /></td>
                     <td className="px-4 py-3 text-sm text-gray-500">{formatDate(job.createdAt)}</td>
                     <td className="px-4 py-3 text-right">
