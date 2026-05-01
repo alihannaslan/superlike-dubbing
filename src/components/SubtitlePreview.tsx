@@ -38,17 +38,17 @@ export function SubtitlePreview({ frameUrl, sampleText, style }: SubtitlePreview
   const bg = hexToRgba(style.bgColor, style.bgOpacity);
 
   return (
-    <div className="relative w-full aspect-video bg-gray-900 rounded-lg overflow-hidden border border-gray-200">
+    <div className="relative w-full max-w-xs mx-auto bg-gray-900 rounded-lg overflow-hidden border border-gray-200">
       {frameUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={frameUrl}
           alt="Video önizleme"
-          className="w-full h-full object-contain"
+          className="block w-full h-auto"
           loading="lazy"
         />
       ) : (
-        <div className="w-full h-full flex items-center justify-center text-gray-500 text-sm">
+        <div className="w-full aspect-[9/16] flex items-center justify-center text-gray-500 text-sm">
           Önizleme hazırlanıyor...
         </div>
       )}
