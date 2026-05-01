@@ -44,14 +44,21 @@ export async function POST(
       );
     }
 
-    await prisma.dubbingJob.update({
-      where: { id: job.id },
+    const result = await prisma.dubbingJob.updateMany({
+      where: { id: job.id, status: "COMPLETED" },
       data: {
         status: "SUBTITLE_REVIEW",
         completedAt: null,
         dubbedFilePath: null,
       },
     });
+
+    if (result.count === 0) {
+      return NextResponse.json(
+        { error: "Sadece tamamlanmış işlerde düzenleme yapılabilir" },
+        { status: 400 }
+      );
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {
