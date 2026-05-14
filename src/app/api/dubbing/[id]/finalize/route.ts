@@ -4,24 +4,38 @@ import { copyFile, unlink } from "fs/promises";
 import { prisma } from "@/lib/db";
 import { getUser } from "@/lib/get-user";
 import { getTranscriptSRT } from "@/lib/elevenlabs";
-import { burnSubtitles, SUBTITLE_FONTS, type SubtitleStyle } from "@/lib/ffmpeg";
+import { applyGlossary, parseBrandTerms } from "@/lib/glossary";
+import { renderFinal, SUBTITLE_FONTS, type SubtitleStyle } from "@/lib/ffmpeg";
 
 export const maxDuration = 600;
 
 interface FinalizeBody {
   subtitleEnabled: boolean;
+  speed?: number;
   style?: {
     font?: string;
     size?: number;
     color?: string;
     bgColor?: string;
     bgOpacity?: number;
+    position?: string;
   };
+}
+
+const MIN_SPEED = 0.8;
+const MAX_SPEED = 1.2;
+
+function validateSpeed(input: number | undefined): number {
+  const v = Number(input);
+  if (!Number.isFinite(v) || v < MIN_SPEED || v > MAX_SPEED) return 1.0;
+  return v;
 }
 
 function isHexColor(value: string): boolean {
   return /^#[0-9A-Fa-f]{6}$/.test(value);
 }
+
+const VALID_POSITIONS = ["top", "middle", "bottom"] as const;
 
 function validateStyle(input: FinalizeBody["style"]): SubtitleStyle | null {
   if (!input) return null;
@@ -33,12 +47,16 @@ function validateStyle(input: FinalizeBody["style"]): SubtitleStyle | null {
   if (!input.bgColor || !isHexColor(input.bgColor)) return null;
   const opacity = Number(input.bgOpacity);
   if (!Number.isFinite(opacity) || opacity < 0 || opacity > 100) return null;
+  const position = (VALID_POSITIONS as readonly string[]).includes(input.position ?? "")
+    ? (input.position as SubtitleStyle["position"])
+    : "bottom";
   return {
     font: fontMatch.ffmpegName,
     size,
     color: input.color,
     bgColor: input.bgColor,
     bgOpacity: opacity,
+    position,
   };
 }
 
@@ -54,6 +72,7 @@ export async function POST(
 
     const body = (await req.json()) as FinalizeBody;
     const { subtitleEnabled } = body;
+    const speed = validateSpeed(body.speed);
 
     let style: SubtitleStyle | null = null;
     if (subtitleEnabled) {
@@ -84,6 +103,8 @@ export async function POST(
         subtitleColor: style?.color ?? null,
         subtitleBgColor: style?.bgColor ?? null,
         subtitleBgOpacity: style?.bgOpacity ?? null,
+        subtitlePosition: style?.position ?? null,
+        speed,
         completedAt: null,
       },
     });
@@ -102,10 +123,23 @@ export async function POST(
     let finalPath: string;
 
     if (subtitleEnabled && style) {
-      const srtContent = await getTranscriptSRT(job.dubbingId, job.targetLang);
-      await burnSubtitles(job.intermediateFilePath, srtContent, subtitledPath, style);
+      let srtContent = await getTranscriptSRT(job.dubbingId, job.targetLang);
+      const brands = parseBrandTerms(job.brandTerms);
+      if (brands.length > 0) {
+        srtContent = applyGlossary(srtContent, brands);
+      }
+      await renderFinal(job.intermediateFilePath, subtitledPath, {
+        srtContent,
+        style,
+        speed,
+      });
       finalPath = subtitledPath;
       await unlink(noSubsPath).catch(() => {});
+    } else if (speed !== 1.0) {
+      await renderFinal(job.intermediateFilePath, noSubsPath, { speed });
+      finalPath = noSubsPath;
+      await unlink(subtitledPath).catch(() => {});
+      await unlink(subtitledPath.replace(/\.mp4$/, ".srt")).catch(() => {});
     } else {
       await copyFile(job.intermediateFilePath, noSubsPath);
       finalPath = noSubsPath;

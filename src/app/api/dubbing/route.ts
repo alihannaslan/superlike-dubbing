@@ -36,6 +36,7 @@ export async function POST(req: NextRequest) {
     const file = formData.get("file") as File | null;
     const sourceLang = formData.get("sourceLang") as string | null;
     const targetLang = formData.get("targetLang") as string | null;
+    const brandTermsRaw = (formData.get("brandTerms") as string | null)?.trim() || null;
 
     if (!file || !sourceLang || !targetLang) {
       return NextResponse.json({ error: "Dosya, kaynak dil ve hedef dil gerekli" }, { status: 400 });
@@ -92,6 +93,7 @@ export async function POST(req: NextRequest) {
         targetLangName: targetLanguage.name,
         status: "UPLOADING",
         previewFramePath,
+        brandTerms: brandTermsRaw,
       },
     });
 

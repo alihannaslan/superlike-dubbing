@@ -7,6 +7,7 @@ import {
   updateSegment,
   dubSegments,
 } from "@/lib/elevenlabs";
+import { applyGlossary, parseBrandTerms } from "@/lib/glossary";
 
 interface SRTSegment {
   index: number;
@@ -69,6 +70,9 @@ export async function GET(
       return NextResponse.json({ error: "Job bulunamadı" }, { status: 404 });
     }
 
+    const brands = parseBrandTerms(job.brandTerms);
+    const fix = (s: string) => (brands.length ? applyGlossary(s, brands) : s);
+
     // Try resource API first (available when dubbing_studio=true)
     try {
       const resource = await getDubbingResource(job.dubbingId);
@@ -78,8 +82,8 @@ export async function GET(
           segmentId,
           startTime: segment.start_time,
           endTime: segment.end_time,
-          sourceText: segment.text,
-          targetText: segment.dubs[job.targetLang]?.text || "",
+          sourceText: fix(segment.text),
+          targetText: fix(segment.dubs[job.targetLang]?.text || ""),
           audioStale: segment.dubs[job.targetLang]?.audio_stale ?? false,
         })
       );
@@ -101,7 +105,7 @@ export async function GET(
           index: s.index,
           startTime: s.startTime,
           endTime: s.endTime,
-          targetText: s.text,
+          targetText: fix(s.text),
         })),
         editable: false,
         targetLang: job.targetLang,

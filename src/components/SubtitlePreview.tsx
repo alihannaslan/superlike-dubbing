@@ -17,6 +17,7 @@ export interface SubtitleStyleControls {
   color: string;
   bgColor: string;
   bgOpacity: number;
+  position: "top" | "middle" | "bottom";
 }
 
 interface SubtitlePreviewProps {
@@ -53,7 +54,16 @@ export function SubtitlePreview({ frameUrl, sampleText, style }: SubtitlePreview
         </div>
       )}
 
-      <div className="absolute left-0 right-0 bottom-[8%] flex justify-center px-4 pointer-events-none">
+      <div
+        className="absolute left-0 right-0 flex justify-center px-4 pointer-events-none"
+        style={
+          style.position === "top"
+            ? { top: "8%" }
+            : style.position === "middle"
+            ? { top: "50%", transform: "translateY(-50%)" }
+            : { bottom: "8%" }
+        }
+      >
         <span
           style={{
             fontFamily,

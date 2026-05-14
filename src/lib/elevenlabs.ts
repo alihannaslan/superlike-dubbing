@@ -61,6 +61,37 @@ export async function createDubbing(
   return res.json();
 }
 
+export async function createDubbingFromCsv(
+  file: Buffer,
+  fileName: string,
+  csv: string,
+  sourceLang: string,
+  targetLang: string
+): Promise<{ dubbing_id: string; expected_duration_sec: number }> {
+  const formData = new FormData();
+  const arrayBuffer = file.buffer.slice(file.byteOffset, file.byteOffset + file.byteLength) as ArrayBuffer;
+  formData.append("file", new Blob([arrayBuffer], { type: getMimeType(fileName) }), fileName);
+  formData.append("csv_file", new Blob([csv], { type: "text/csv" }), "transcript.csv");
+  formData.append("source_lang", sourceLang);
+  formData.append("target_lang", targetLang);
+  formData.append("mode", "manual");
+  formData.append("num_speakers", "0");
+  formData.append("watermark", "false");
+
+  const res = await fetch(`${API_BASE}/dubbing`, {
+    method: "POST",
+    headers: { "xi-api-key": getApiKey() },
+    body: formData,
+  });
+
+  if (!res.ok) {
+    const error = await res.text();
+    throw new Error(`ElevenLabs CSV dubbing failed: ${res.status} ${error}`);
+  }
+
+  return res.json();
+}
+
 export async function getDubbingStatus(dubbingId: string): Promise<{
   dubbing_id: string;
   name: string;

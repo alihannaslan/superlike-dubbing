@@ -30,6 +30,8 @@ model DubbingJob {
   targetLangName   String
   status           String    @default("PENDING")
   dubbingId        String?
+  brandTerms       String?
+  glossaryApplied  Boolean   @default(false)
   expectedDuration Int?
   dubbedFilePath   String?
   intermediateFilePath String?
@@ -40,6 +42,8 @@ model DubbingJob {
   subtitleColor    String?
   subtitleBgColor  String?
   subtitleBgOpacity Int?
+  subtitlePosition String?
+  speed            Float    @default(1.0)
   errorMessage     String?
   createdAt        DateTime  @default(now())
   completedAt      DateTime?
