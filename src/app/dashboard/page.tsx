@@ -70,7 +70,7 @@ export default function DashboardPage() {
         </div>
         <Link
           href="/dashboard/new"
-          className="shrink-0 bg-blue-600 hover:bg-blue-700 text-white px-3 sm:px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap"
+          className="shrink-0 bg-gray-900 hover:bg-gray-800 text-white px-4 sm:px-5 py-2 rounded-xl text-sm font-medium transition-colors whitespace-nowrap"
         >
           Yeni Çeviri
         </Link>
@@ -83,7 +83,7 @@ export default function DashboardPage() {
           <p className="text-gray-500">Henüz çeviri yok</p>
           <Link
             href="/dashboard/new"
-            className="text-blue-600 hover:text-blue-700 text-sm mt-2 inline-block"
+            className="text-gray-900 font-medium hover:text-gray-700 text-sm mt-2 inline-block"
           >
             İlk çeviriyi başlat
           </Link>
@@ -146,7 +146,7 @@ export default function DashboardPage() {
                     <td className="px-4 py-3"><StatusBadge status={job.status} downloadedAt={job.downloadedAt} /></td>
                     <td className="px-4 py-3 text-sm text-gray-500">{formatDate(job.createdAt)}</td>
                     <td className="px-4 py-3 text-right">
-                      <Link href={`/dashboard/jobs/${job.id}`} className="text-blue-600 hover:text-blue-700 text-sm">Detay</Link>
+                      <Link href={`/dashboard/jobs/${job.id}`} className="text-gray-900 font-medium hover:text-gray-700 text-sm">Detay</Link>
                     </td>
                   </tr>
                 ))}

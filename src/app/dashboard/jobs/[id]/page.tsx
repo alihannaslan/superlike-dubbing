@@ -28,6 +28,7 @@ interface JobDetail {
   subtitleColor?: string | null;
   subtitleBgColor?: string | null;
   subtitleBgOpacity?: number | null;
+  subtitlePosition?: string | null;
 }
 
 interface Segment {
@@ -53,6 +54,7 @@ export default function JobDetailPage() {
   const [finalizing, setFinalizing] = useState(false);
   const [editingSubtitle, setEditingSubtitle] = useState(false);
   const [style, setStyle] = useState<SubtitleStyleControls>(DEFAULT_SUBTITLE_STYLE);
+  const [speed, setSpeed] = useState<number>(1.0);
 
   const fetchJob = useCallback(async () => {
     const res = await fetch(`/api/dubbing/${id}`);
@@ -61,12 +63,14 @@ export default function JobDetailPage() {
       setJob(data);
       setLoading(false);
       if (data.subtitleFont && data.subtitleSize && data.subtitleColor && data.subtitleBgColor && data.subtitleBgOpacity !== null && data.subtitleBgOpacity !== undefined) {
+        const pos = data.subtitlePosition;
         setStyle({
           font: data.subtitleFont,
           size: data.subtitleSize,
           color: data.subtitleColor,
           bgColor: data.subtitleBgColor,
           bgOpacity: data.subtitleBgOpacity,
+          position: pos === "top" || pos === "middle" ? pos : "bottom",
         });
       }
     }
@@ -215,8 +219,8 @@ export default function JobDetailPage() {
   async function handleFinalize(withSubtitle: boolean) {
     setFinalizing(true);
     const body = withSubtitle
-      ? { subtitleEnabled: true, style }
-      : { subtitleEnabled: false };
+      ? { subtitleEnabled: true, style, speed }
+      : { subtitleEnabled: false, speed };
 
     const res = await fetch(`/api/dubbing/${id}/finalize`, {
       method: "POST",
@@ -339,14 +343,14 @@ export default function JobDetailPage() {
           <div className="space-y-2">
             <a
               href={`/api/dubbing/${job.id}/download`}
-              className="block w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2.5 rounded-lg transition-colors text-center"
+              className="block w-full bg-gray-900 hover:bg-gray-800 text-white font-medium py-3 rounded-xl transition-colors text-center"
             >
               Çevrilmiş Videoyu İndir
             </a>
             <button
               onClick={handleEditSubtitle}
               disabled={editingSubtitle}
-              className="block w-full bg-white border border-gray-300 hover:border-gray-400 disabled:opacity-50 text-gray-700 font-medium py-2.5 rounded-lg transition-colors text-center"
+              className="block w-full bg-white border border-gray-300 hover:border-gray-400 disabled:opacity-50 text-gray-700 font-medium py-3 rounded-xl transition-colors text-center"
             >
               {editingSubtitle ? "Hazırlanıyor..." : "Altyazıyı Düzenle"}
             </button>
@@ -410,13 +414,13 @@ export default function JobDetailPage() {
                               value={currentText}
                               onChange={(e) => handleTextChange(key, e.target.value)}
                               rows={2}
-                              className="flex-1 bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                              className="flex-1 bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent resize-none"
                             />
                             {isEdited && (
                               <button
                                 onClick={() => handleSaveSegment(segment.segmentId!)}
                                 disabled={isSaving}
-                                className="sm:self-end bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs px-3 py-2 rounded-lg transition-colors whitespace-nowrap"
+                                className="sm:self-end bg-gray-900 hover:bg-gray-800 disabled:opacity-50 text-white text-xs px-3 py-2 rounded-lg transition-colors whitespace-nowrap"
                               >
                                 {isSaving ? "..." : "Kaydet"}
                               </button>
@@ -435,7 +439,7 @@ export default function JobDetailPage() {
                 <button
                   onClick={handleStartDubbing}
                   disabled={dubbing || hasUnsavedChanges}
-                  className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium py-3 rounded-lg transition-colors"
+                  className="w-full bg-gray-900 hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium py-3 rounded-xl transition-colors"
                 >
                   {dubbing
                     ? "Dublaj başlatılıyor..."
@@ -466,13 +470,44 @@ export default function JobDetailPage() {
 
           <SubtitlePreview frameUrl={frameUrl} sampleText={sampleText} style={style} />
 
+          <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-4 sm:p-6">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Konuşma Hızı{" "}
+              <span className="text-gray-500 font-normal">
+                ({speed.toFixed(2)}x)
+              </span>
+            </label>
+            <div className="grid grid-cols-5 gap-2">
+              {[0.8, 0.9, 1.0, 1.1, 1.2].map((s) => {
+                const isActive = Math.abs(speed - s) < 0.01;
+                return (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => setSpeed(s)}
+                    className={`py-2 rounded-lg text-sm font-medium transition-colors border ${
+                      isActive
+                        ? "bg-gray-900 border-gray-900 text-white"
+                        : "bg-white border-gray-300 text-gray-700 hover:border-gray-400"
+                    }`}
+                  >
+                    {s.toFixed(2)}x
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-xs text-gray-400 mt-2">
+              1x'in altı sesi yavaşlatır (video da uzar), üstü hızlandırır.
+            </p>
+          </div>
+
           <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-4 sm:p-6 space-y-5">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Font</label>
               <select
                 value={style.font}
                 onChange={(e) => setStyle((s) => ({ ...s, font: e.target.value }))}
-                className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
               >
                 {SUBTITLE_FONTS.map((f) => (
                   <option key={f.ffmpegName} value={f.ffmpegName}>
@@ -536,20 +571,44 @@ export default function JobDetailPage() {
                 className="w-full"
               />
             </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Konum</label>
+              <div className="grid grid-cols-3 gap-2">
+                {(["top", "middle", "bottom"] as const).map((pos) => {
+                  const labels = { top: "Üst", middle: "Orta", bottom: "Alt" };
+                  const isActive = style.position === pos;
+                  return (
+                    <button
+                      key={pos}
+                      type="button"
+                      onClick={() => setStyle((s) => ({ ...s, position: pos }))}
+                      className={`py-2 rounded-lg text-sm font-medium transition-colors border ${
+                        isActive
+                          ? "bg-gray-900 border-gray-900 text-white"
+                          : "bg-white border-gray-300 text-gray-700 hover:border-gray-400"
+                      }`}
+                    >
+                      {labels[pos]}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <button
               onClick={() => handleFinalize(true)}
               disabled={finalizing}
-              className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-medium py-3 rounded-lg transition-colors"
+              className="bg-gray-900 hover:bg-gray-800 disabled:opacity-50 text-white font-medium py-3 rounded-xl transition-colors"
             >
               {finalizing ? "Oluşturuluyor..." : "Altyazılı Olarak Tamamla"}
             </button>
             <button
               onClick={() => handleFinalize(false)}
               disabled={finalizing}
-              className="bg-white border border-gray-300 hover:border-gray-400 disabled:opacity-50 text-gray-700 font-medium py-3 rounded-lg transition-colors"
+              className="bg-white border border-gray-300 hover:border-gray-400 disabled:opacity-50 text-gray-700 font-medium py-3 rounded-xl transition-colors"
             >
               Altyazısız İndir
             </button>

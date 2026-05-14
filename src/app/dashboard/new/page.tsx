@@ -11,6 +11,7 @@ export default function NewDubbingPage() {
   const [file, setFile] = useState<File | null>(null);
   const [sourceLang, setSourceLang] = useState("tr");
   const [targetLang, setTargetLang] = useState("");
+  const [brandTerms, setBrandTerms] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -30,6 +31,7 @@ export default function NewDubbingPage() {
     formData.append("file", file);
     formData.append("sourceLang", sourceLang);
     formData.append("targetLang", targetLang);
+    if (brandTerms.trim()) formData.append("brandTerms", brandTerms.trim());
 
     try {
       const res = await fetch("/api/dubbing", {
@@ -74,12 +76,28 @@ export default function NewDubbingPage() {
           </div>
         </div>
 
+        <div>
+          <label className="block text-sm text-gray-700 mb-2">
+            Marka Adları <span className="text-gray-400 font-normal">(opsiyonel)</span>
+          </label>
+          <input
+            type="text"
+            value={brandTerms}
+            onChange={(e) => setBrandTerms(e.target.value)}
+            placeholder="Dermoten, Acme"
+            className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+          />
+          <p className="text-xs text-gray-400 mt-1.5">
+            Videoda geçen marka adlarını virgülle ayırarak yazın. Yanlış yazımları otomatik düzeltilir.
+          </p>
+        </div>
+
         {error && <p className="text-red-500 text-sm">{error}</p>}
 
         <button
           type="submit"
           disabled={loading || !file || !sourceLang || !targetLang}
-          className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium py-2.5 rounded-lg transition-colors"
+          className="w-full bg-gray-900 hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium py-3 rounded-xl transition-colors"
         >
           {loading ? "Yükleniyor ve çeviri başlatılıyor..." : "Çeviriyi Başlat"}
         </button>
