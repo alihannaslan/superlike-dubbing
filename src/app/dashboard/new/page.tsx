@@ -78,17 +78,16 @@ export default function NewDubbingPage() {
 
         <div>
           <label className="block text-sm text-gray-700 mb-2">
-            Marka Adları <span className="text-gray-400 font-normal">(opsiyonel)</span>
+            Özel isimler <span className="text-gray-400 font-normal">(opsiyonel)</span>
           </label>
           <input
             type="text"
             value={brandTerms}
             onChange={(e) => setBrandTerms(e.target.value)}
-            placeholder="Dermoten, Acme"
             className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
           />
           <p className="text-xs text-gray-400 mt-1.5">
-            Videoda geçen marka adlarını virgülle ayırarak yazın. Yanlış yazımları otomatik düzeltilir.
+            Videoda geçen özel isimleri virgülle ayırarak yazın. Yanlış yazımları otomatik düzeltilir.
           </p>
         </div>
 
